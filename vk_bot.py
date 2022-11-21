@@ -5,7 +5,7 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.longpoll import VkLongPoll, VkEventType
 import json
 import os
-
+from vk_folder.some_frases import iniciate_messages
 
 token = os.getenv('token')
 vk_session = vk_api.VkApi(token=token)
@@ -20,9 +20,6 @@ class User:
         self.mode = mode
         self.name = ''
         self.age = -1
-
-
-
 
 
 
@@ -67,7 +64,7 @@ for event in longpoll.listen():
             id = event.user_id
             msg = event.text.lower()
 
-            if msg:
+            if msg in iniciate_messages:
                 sender(id, 'hello', clear_key)
 
 
