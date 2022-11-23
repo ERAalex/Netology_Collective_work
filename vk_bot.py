@@ -107,17 +107,31 @@ for event in longpoll.listen():
                 for user in users:
                     if user.id == id:
 
+                        ##  Логика на Старт меню
                         if user.mode == 'start':
                             if str(msg) == '1':
-                                sender(id, 'Ваши контакты: \n ', menu_check_db)
+                                sender(id, 'Ваши контакты: Функция, выводим людей из БД \n ', menu_check_db)
                                 user.mode = 'db_check'
-
 
                             if str(msg) == '3':
                                 sender(id, 'Для общего поиска людей выберите кого ищем \n ', menu_sex)
                                 user.mode = 'menu_sex'
                                 print(user.mode)
 
+
+                        ##  Логика на 1 пункт
+                        elif user.mode == 'db_check':
+                            if msg == 'следующий контакт':
+                                sender(id, 'Выводим следующий контакт, Функция ДБ \n ', menu_find_people)
+                                user.mode = 'db_check'
+
+                            if msg == 'удалить контакт':
+                                sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ', menu_find_people)
+                                user.mode = 'db_check'
+
+
+
+                        ##  Логика на 3 пункт
 
                         elif user.mode == 'menu_sex':
                             if msg == 'девушку':
@@ -138,7 +152,7 @@ for event in longpoll.listen():
                                 user.mode = 'girl_find'
 
                             if msg == 'добавить в контакты':
-                                sender(id, 'Добавляем в контакты, тут идет функция БД '
+                                sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
                                            'и вывода \n ', menu_find_people)
                                 user.mode = 'girl_find'
 
@@ -150,7 +164,7 @@ for event in longpoll.listen():
                                 user.mode = 'boy_find'
 
                             if msg == 'добавить в контакты':
-                                sender(id, 'Добавляем в контакты, тут идет функция БД '
+                                sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
                                            'и вывода \n ', menu_find_people)
                                 user.mode = 'boy_find'
 
