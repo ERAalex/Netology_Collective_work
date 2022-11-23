@@ -34,7 +34,14 @@ def get_keyboard(buts):
         for k in range(len(buts[i])):
             text = buts[i][k][0]
             color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary'}[buts[i][k][1]]
-            nb[i][k] = {'action': {'type': 'text', 'payload': '{\'button\': \'' + '1' + '\'}', 'label': f'{text}'}, 'color': f'{color}'}
+            nb[i][k] = {
+                "action": {
+                    "type": "text",
+                    "payload": "{\"button\": \"" + "1" + "\"}",
+                    "label": f"{text}"
+                },
+                "color": f"{color}"
+            }
     first_keyboard = {'one_time': False, 'buttons': nb, 'inline': False}
     first_keyboard = json.dumps(first_keyboard, ensure_ascii=False).encode('utf-8')
     first_keyboard = str(first_keyboard.decode('utf-8'))
@@ -49,9 +56,20 @@ clear_key = get_keyboard(
 )
 
 
-menu_key = get_keyboard([
-    [('Информация', 'синий')]
+menu_find_people = get_keyboard([
+    [('Добавить в контакты', 'синий')], [('Следующий человек', 'зеленый')]
 ])
+
+menu_sex = get_keyboard([
+    [('Девушку', 'синий')], [('Парня', 'зеленый')]
+])
+
+menu_check_db = get_keyboard([
+    [('Следующий контакт', 'зеленый')], [('Удалить контакт', 'красный')], [('Искать людей', 'синий')]
+])
+
+
+
 
 user = User(100, 'some')
 
@@ -73,148 +91,135 @@ for event in longpoll.listen():
                 for user in users:
                     if user.id == id:
                         flag = 1
-                        user.mode = 'decision_start'
+                        user.mode = 'start'
                         break
                     if flag == 0:
-                        users.append(User(id, 'decision_start'))
+                        users.append(User(id, 'start'))
                         sender(id, 'Что будем делать? Наберите цифру: \n'
-                                   '1- Поиск человека \n'
-                                   '2- Посмотреть БД \n'
-                                   '3- Удалить из БД \n'
+                                   '1- Посмотреть добавленные контакты \n'
+                                   '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                   '3- Общий поиск людей \n'
                                    '\n'
                                    '\n'
                                    ' ', clear_key)
-                    elif flag == 1:
-                        for user in users:
-                            if user.id == id:
-                                if not(user.mode in ['reg1', 'reg2']):
-                                    sender(id, 'Зарегестрируйтесь в боте. \nВведите свое имя: ', clear_key)
 
             else:
                 for user in users:
                     if user.id == id:
-                        #
-                        if user.mode == 'decision_start':
+
+                        if user.mode == 'start':
                             if str(msg) == '1':
-                                sender(id, 'Начнем поиск человека, '
-                                           'смотрим по настраиваемым параметрам? Да/ Нет: ', clear_key)
-                                user.mode = '1_decision_parametrs'
-
-                        elif user.mode == 'reg2':
-                            try:
-                                user.age = int(msg)
-                                sender(id, 'Вы успешно зарегестрировались!', menu_key)
-                                user.mode = 'menu'
-                            except:
-                                sender(id, 'Значение возраста не подходит!', clear_key)
+                                sender(id, 'Ваши контакты: \n ', menu_check_db)
+                                user.mode = 'db_check'
 
 
+                            if str(msg) == '3':
+                                sender(id, 'Для общего поиска людей выберите кого ищем \n ', menu_sex)
+                                user.mode = 'menu_sex'
+                                print(user.mode)
 
 
+                        elif user.mode == 'menu_sex':
+                            if msg == 'девушку':
+                                sender(id, 'Выводим девушек, тут идет функция поиска (Девушек) '
+                                           'и вывода \n ', menu_find_people)
+                                user.mode = 'girl_find'
+
+                            if msg == 'парня':
+                                sender(id, 'Выводим парней, тут идет функция поиска (Парней) '
+                                           'и вывода \n ', menu_find_people)
+                                user.mode = 'boy_find'
+
+
+                        if user.mode == 'girl_find':
+                            if msg == 'следующий человек':
+                                sender(id, 'Продолжаем вывод, тут идет функция поиска (Девушек) '
+                                           'и вывода \n ', menu_find_people)
+                                user.mode = 'girl_find'
+
+                            if msg == 'добавить в контакты':
+                                sender(id, 'Добавляем в контакты, тут идет функция БД '
+                                           'и вывода \n ', menu_find_people)
+                                user.mode = 'girl_find'
+
+
+                        if user.mode == 'boy_find':
+                            if msg == 'следующий человек':
+                                sender(id, 'Продолжаем вывод, тут идет функция поиска (Парней) '
+                                           'и вывода \n ', menu_find_people)
+                                user.mode = 'boy_find'
+
+                            if msg == 'добавить в контакты':
+                                sender(id, 'Добавляем в контакты, тут идет функция БД '
+                                           'и вывода \n ', menu_find_people)
+                                user.mode = 'boy_find'
+
+
+                        if user.mode == 'db_check':
+                            sender(id, 'Смотрим базу тест 2 \n ', menu_check_db)
+                            user.mode = 'db_check'
+
+
+
+
+
+
+
+
+
+
+
+#################
 #
 #
-# user = User(100, 'some')
+# for event in longpoll.listen():
+#     if event.type == VkEventType.MESSAGE_NEW:
+#         if event.to_me:
 #
-# users = [user]
+#             id = event.user_id
+#             msg = event.text.lower()
 #
-#             for event in longpoll.listen():
-#                 if event.type == VkEventType.MESSAGE_NEW:
-#                     if event.to_me:
+#             if msg in iniciate_messages:
+#                 sender(id, 'hello', clear_key)
 #
-#                         id = event.user_id
-#                         msg = event.text.lower()
 #
-#                         if msg:
-#                             sender(id, 'hello', clear_key)
-#
-#                         if msg == 'start':
-#                             flag = 0
-#                             for user in users:
-#                                 if user.id == id:
-#                                     flag = 1
-#                                     break
-#                                 if flag == 0:
-#                                     users.append(User(id, 'reg1'))
-#                                     print(users)
+#             if msg == 'start':
+#                 flag = 0
+#                 for user in users:
+#                     if user.id == id:
+#                         flag = 1
+#                         user.mode = 'start'
+#                         break
+#                     if flag == 0:
+#                         users.append(User(id, 'start'))
+#                         sender(id, 'Что будем делать? Наберите цифру: \n'
+#                                    '1- Посмотреть добавленные контакты \n'
+#                                    '2- Расширенный поиск человека (город, пол, книги, музыка) \n'
+#                                    '3- Общий поиск людей \n'
+#                                    '\n'
+#                                    '\n'
+#                                    ' ', clear_key)
+#                     elif flag == 1:
+#                         for user in users:
+#                             if user.id == id:
+#                                 if not(user.mode in ['reg1', 'reg2']):
 #                                     sender(id, 'Зарегестрируйтесь в боте. \nВведите свое имя: ', clear_key)
-#                                 elif flag == 1:
-#                                     for user in users:
-#                                         if user.id == id:
-#                                             if not (user.mode in ['reg1', 'reg2']):
-#                                                 sender(id, 'Зарегестрируйтесь в боте. \nВведите свое имя: ', clear_key)
 #
-#                         else:
-#                             for user in users:
-#                                 if user.id == id:
-#                                     # если человек прислал нам сообщение и его статус reg1 значит он нам прислал имя
-#                                     if user.mode == 'reg1':
-#                                         user.name = msg.title()
-#                                         sender(id, 'Введите свой возраст: ', clear_key)
-#                                         user.mode = 'reg2'
+#             else:
+#                 for user in users:
+#                     if user.id == id:
+#                         #
+#                         if user.mode == 'start':
+#                             if str(msg) == '1':
+#                                 sender(id, 'Ваши контакты: \n ', menu_check_db)
+#                                 user.mode = '1_decision_parametrs'
 #
-#                                     elif user.mode == 'reg2':
-#                                         try:
-#                                             user.age = int(msg)
-#                                             sender(id, 'Вы успешно зарегестрировались!', menu_key)
-#                                             user.mode = 'menu'
-#                                         except:
-#                                             sender(id, 'Значение возраста не подходит!', clear_key)
+#                         elif user.mode == 'reg2':
+#                             try:
+#                                 user.age = int(msg)
+#                                 sender(id, 'Вы успешно зарегестрировались!', menu_key)
+#                                 user.mode = 'menu'
+#                             except:
+#                                 sender(id, 'Значение возраста не подходит!', clear_key)
 #
-
-
-
-
-
-            #
-            # vars1 = ['Привет', 'Ку', 'Хай', 'Хеллоу', 'Хелп']
-            # vars2 = ['Клавиатура', 'клавиатура']
-            # check_words = [vars1, vars2, '1', '2']
-            #
-            # if event.text == 'старт':
-            #     Lsvk.messages.send(
-            #         user_id=event.user_id,
-            #         message=message_start,
-            #         random_id=get_random_id()
-            #     )
-            #     break
-            #
-            #
-            # if event.text == '1':
-            #     if event.from_user:
-            #         Lsvk.messages.send(
-            #             user_id=event.user_id,
-            #             message='Введите параметры, название города где живет: "город - Москва"',
-            #             random_id=get_random_id()
-            #             )
-            #         break
-            #
-            #
-            # if 'город' in str(event.text):
-            #     print('yes')
-            #     if event.from_user:
-            #         Lsvk.messages.send(
-            #             user_id=event.user_id,
-            #             message=f'Вы ввели: {event.text}, кого Вы ищете? напишите: М или Ж',
-            #             random_id=get_random_id()
-            #         )
-            #         city_received = str(event.text)
-            #         print(city_received)
-            #     break
-            #
-            #
-            #
-            #
-            # if event.text in vars2:
-            #     if event.from_user:
-            #         Lsvk.messages.send(
-            #             user_id = event.user_id,
-            #             random_id = get_random_id(),
-            #             keyboard = keyboard.get_keyboard(),
-            #             message = 'Держи'
-            #             )
-            #
-            #
-            #
-            #
-            #
-            #
+#
