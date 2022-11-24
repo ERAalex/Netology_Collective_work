@@ -2,13 +2,13 @@ import sqlalchemy
 from psycopg2 import connect
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from DB.models import Users, Selected, Gender, Photos, UsersSelected, Banned, create_tables
 
-from models import Users, Selected, Gender, Photos, UsersSelected, Banned, create_tables
 
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': '--СЮДА СВОЙ ПАРОЛЬ--',
+        'password': 'nazca007',
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
@@ -39,7 +39,7 @@ class DB:
 
 
 # Тест запусков
-
+#
 # run_db = DB(**CONNECT)
 # test = run_db.create_database()
 # create = run_db.create_table()
