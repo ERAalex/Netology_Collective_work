@@ -3,6 +3,7 @@ from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
+
 class Users(Base):
     __tablename__ = 'users'
 
@@ -21,8 +22,9 @@ class Users(Base):
     books = sqa.Column(sqa.Text, nullable=True)
     games = sqa.Column(sqa.Text, nullable=True)
     music = sqa.Column(sqa.Text, nullable=True)
+    gender = sqa.Column(sqa.Text, nullable=True)
 
-    gender = relationship('Gender', backref='users')
+    # gender = relationship('Gender', backref='users')
     users_selected = relationship('UsersSelected', backref='users')
     banned = relationship('Banned', backref='users')
 
@@ -45,17 +47,18 @@ class Selected(Base):
     books = sqa.Column(sqa.Text, nullable=True)
     games = sqa.Column(sqa.Text, nullable=True)
     music = sqa.Column(sqa.Text, nullable=True)
+    gender = sqa.Column(sqa.Text, nullable=True)
 
-    gender = relationship('Gender', backref='selected')
+    # gender = relationship('Gender', backref='selected')
     photo = relationship('Photos', backref='selected')
-    users_selected = relationship('Selected', backref='selected')
+    users_selected = relationship('UsersSelected', backref='selected')
 
 
-class Gender(Base):
-    __tablename__ = 'gender'
+# class Gender(Base):
+#     __tablename__ = 'gender'
 
-    id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
-    gender_type = sqa.Column(sqa.String, nullable=False)
+#     id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
+#     gender_type = sqa.Column(sqa.String, nullable=False)
 
 
 class Photos(Base):
@@ -70,15 +73,15 @@ class UsersSelected(Base):
     __tablename__ = 'users_selected'
 
     id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
-    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=True)
-    id_selected = sqa.Column(sqa.Integer, sqa.ForeignKey('selected.id'), nullable=True)
+    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=False)
+    id_selected = sqa.Column(sqa.Integer, sqa.ForeignKey('selected.id'), nullable=False)
 
 
 class Banned(Base):
     __tablename__ = 'banned'
 
     id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
-    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=True)
+    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=False)
     banned_vk_id = sqa.Column(sqa.Text, nullable=False)
 
 
