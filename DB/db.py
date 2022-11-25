@@ -93,6 +93,7 @@ class DB:
         db_session.commit()
         db_session.close()
 
+    
 
 test_user = {
     'name': 'Sergey',
