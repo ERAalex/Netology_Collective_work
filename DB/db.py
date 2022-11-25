@@ -114,6 +114,19 @@ class DB:
         db_session.add(add_query)
         db_session.commit()
         db_session.close()
+
+######
+    def find_using_users_selected(self, user_id):
+        '''у нас есть id пользователя бота, надо найти по нему всех релайтед людей из UsersSelected'''
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        query = session.query(UsersSelected).filter(UsersSelected.id_user == user_id).all()
+        session.close()
+        result = []
+        for item in query:
+            result.append(item.id_selected)
+        return result
+#####
     
     def add_banned(self, user_id, selected_vk_id):
         '''добавление в бан лист'''
@@ -141,7 +154,9 @@ class DB:
         session.close()
         result = {}
         for column in query:
-            result = {'name': column.name,
+            ###### Дописал id он нам нужен в выводе для поиска по UserRelated
+            result = {'id': column.id,
+                      'name': column.name,
                       'last_name': column.last_name,
                       'vk_id': column.vk_id,
                       'age': column.age,
@@ -158,6 +173,39 @@ class DB:
                       'gender': column.gender
                       }
         return result
+
+
+##### Для поиска у нас не vk_id релайтед персона (как внизу функция), а на руках только id релайтед из функции
+##### find_using_users_selected поэтому нужен поиск по id
+
+    def search_selected_from_db_using_id(self, id):
+        '''получения словаря с информацией о выбранном пользователе из БД'''
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        query = session.query(Selected).filter(Selected.id == id).all()
+        session.close()
+        result = {}
+        for column in query:
+            result = {'name': column.name,
+                      'last_name': column.last_name,
+                      'vk_id': column.vk_id,
+                      'age': column.age,
+                      'relations': column.relations,
+                      'b_day': column.b_day,
+                      'city': column.city,
+                      'language': column.language,
+                      'activities': column.activities,
+                      'interests': column.interests,
+                      'movies': column.movies,
+                      'books': column.books,
+                      'games': column.games,
+                      'music': column.music,
+                      'gender': column.gender
+                      }
+        return result
+
+
+
 
     def search_selected_from_db(self, selected_vk_id):
         '''получения словаря с информацией о выбранном пользователе из БД'''
@@ -226,13 +274,18 @@ test_selected = {
 
 # Тест запусков
 
-# run_db = DB(**CONNECT)
+run_db = DB(**CONNECT)
 # test = run_db.create_database()
 # create = run_db.create_table()
-
+#
 # test2 = run_db.add_user(test_user)
 #
 # test3 = run_db.add_selected(test_selected)
+
+# run_db.mark_users_selected(12, 2)
+
+
+run_db.find_using_users_selected(12)
 
 # test_user_info = run_db.search_user_from_db('id459484548495')
 # print(test_user_info)
