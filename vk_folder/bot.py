@@ -105,94 +105,94 @@ class Bot:
                     user_db.add_user(data)
 
                     msg = event.text.lower()
-                    #
-                    # if msg in iniciate_messages:
-                    #     self.sender(id, 'hello', self.clear_key_board())
-                    #
-                    # if msg == 'start':
-                    #     flag = 0
-                    #     for user in users:
-                    #         if user.id == id:
-                    #             flag = 1
-                    #             user.mode = 'start'
-                    #             break
-                    #         if flag == 0:
-                    #             users.append(User(id, 'start'))
-                    #             sender(id, 'Что будем делать? Наберите цифру: \n'
-                    #                        '1- Посмотреть добавленные контакты \n'
-                    #                        '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
-                    #                        '3- Общий поиск людей \n'
-                    #                        '\n'
-                    #                        '\n'
-                    #                        ' ', clear_key)
-                    #
-                    # else:
-                    #     for user in users:
-                    #         if user.id == id:
-                    #
-                    #             ##  Логика на Старт меню
-                    #             if user.mode == 'start':
-                    #                 if str(msg) == '1':
-                    #                     sender(id, 'Ваши контакты: Функция, выводим людей из БД \n ', menu_check_db)
-                    #                     user.mode = 'db_check'
-                    #
-                    #                 if str(msg) == '3':
-                    #                     sender(id, 'Для общего поиска людей выберите кого ищем \n ', menu_sex)
-                    #                     user.mode = 'menu_sex'
-                    #                     print(user.mode)
-                    #
-                    #
-                    #             ##  Логика на 1 пункт
-                    #             elif user.mode == 'db_check':
-                    #                 if msg == 'следующий контакт':
-                    #                     sender(id, 'Выводим следующий контакт, Функция ДБ \n ', menu_find_people)
-                    #                     user.mode = 'db_check'
-                    #
-                    #                 if msg == 'удалить контакт':
-                    #                     sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
-                    #                            menu_find_people)
-                    #                     user.mode = 'db_check'
-                    #
-                    #
-                    #
-                    #             ##  Логика на 3 пункт
-                    #
-                    #             elif user.mode == 'menu_sex':
-                    #                 if msg == 'девушку':
-                    #                     sender(id, 'Выводим девушек, тут идет функция поиска (Девушек) '
-                    #                                'и вывода \n ', menu_find_people)
-                    #                     user.mode = 'girl_find'
-                    #
-                    #                 if msg == 'парня':
-                    #                     sender(id, 'Выводим парней, тут идет функция поиска (Парней) '
-                    #                                'и вывода \n ', menu_find_people)
-                    #                     user.mode = 'boy_find'
-                    #
-                    #             if user.mode == 'girl_find':
-                    #                 if msg == 'следующий человек':
-                    #                     sender(id, 'Продолжаем вывод, тут идет функция поиска (Девушек) '
-                    #                                'и вывода \n ', menu_find_people)
-                    #                     user.mode = 'girl_find'
-                    #
-                    #                 if msg == 'добавить в контакты':
-                    #                     sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
-                    #                                'и вывода \n ', menu_find_people)
-                    #                     user.mode = 'girl_find'
-                    #
-                    #             if user.mode == 'boy_find':
-                    #                 if msg == 'следующий человек':
-                    #                     sender(id, 'Продолжаем вывод, тут идет функция поиска (Парней) '
-                    #                                'и вывода \n ', menu_find_people)
-                    #                     user.mode = 'boy_find'
-                    #
-                    #                 if msg == 'добавить в контакты':
-                    #                     sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
-                    #                                'и вывода \n ', menu_find_people)
-                    #                     user.mode = 'boy_find'
-                    #
-                    #             if user.mode == 'db_check':
-                    #                 sender(id, 'Смотрим базу тест 2 \n ', menu_check_db)
-                    #                 user.mode = 'db_check'
+
+                    if msg in iniciate_messages:
+                        self.sender(id, 'hello', self.clear_key_board())
+
+                    if msg == 'start':
+                        flag = 0
+                        for user in users:
+                            if user.id == id:
+                                flag = 1
+                                user.mode = 'start'
+                                break
+                            if flag == 0:
+                                users.append(User(id, 'start'))
+                                sender(id, 'Что будем делать? Наберите цифру: \n'
+                                           '1- Посмотреть добавленные контакты \n'
+                                           '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                           '3- Общий поиск людей \n'
+                                           '\n'
+                                           '\n'
+                                           ' ', clear_key)
+
+                    else:
+                        for user in users:
+                            if user.id == id:
+
+                                ##  Логика на Старт меню
+                                if user.mode == 'start':
+                                    if str(msg) == '1':
+                                        sender(id, 'Ваши контакты: Функция, выводим людей из БД \n ', menu_check_db)
+                                        user.mode = 'db_check'
+
+                                    if str(msg) == '3':
+                                        sender(id, 'Для общего поиска людей выберите кого ищем \n ', menu_sex)
+                                        user.mode = 'menu_sex'
+                                        print(user.mode)
+
+
+                                ##  Логика на 1 пункт
+                                elif user.mode == 'db_check':
+                                    if msg == 'следующий контакт':
+                                        sender(id, 'Выводим следующий контакт, Функция ДБ \n ', menu_find_people)
+                                        user.mode = 'db_check'
+
+                                    if msg == 'удалить контакт':
+                                        sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
+                                               menu_find_people)
+                                        user.mode = 'db_check'
+
+
+
+                                ##  Логика на 3 пункт
+
+                                elif user.mode == 'menu_sex':
+                                    if msg == 'девушку':
+                                        sender(id, 'Выводим девушек, тут идет функция поиска (Девушек) '
+                                                   'и вывода \n ', menu_find_people)
+                                        user.mode = 'girl_find'
+
+                                    if msg == 'парня':
+                                        sender(id, 'Выводим парней, тут идет функция поиска (Парней) '
+                                                   'и вывода \n ', menu_find_people)
+                                        user.mode = 'boy_find'
+
+                                if user.mode == 'girl_find':
+                                    if msg == 'следующий человек':
+                                        sender(id, 'Продолжаем вывод, тут идет функция поиска (Девушек) '
+                                                   'и вывода \n ', menu_find_people)
+                                        user.mode = 'girl_find'
+
+                                    if msg == 'добавить в контакты':
+                                        sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
+                                                   'и вывода \n ', menu_find_people)
+                                        user.mode = 'girl_find'
+
+                                if user.mode == 'boy_find':
+                                    if msg == 'следующий человек':
+                                        sender(id, 'Продолжаем вывод, тут идет функция поиска (Парней) '
+                                                   'и вывода \n ', menu_find_people)
+                                        user.mode = 'boy_find'
+
+                                    if msg == 'добавить в контакты':
+                                        sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
+                                                   'и вывода \n ', menu_find_people)
+                                        user.mode = 'boy_find'
+
+                                if user.mode == 'db_check':
+                                    sender(id, 'Смотрим базу тест 2 \n ', menu_check_db)
+                                    user.mode = 'db_check'
                     #
 
 
