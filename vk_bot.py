@@ -9,7 +9,7 @@ import os
 from vk_folder.some_frases import iniciate_messages
 from DB.db import DB, CONNECT
 from DB.models import Users
-from vk_folder.people_search import put_user_data_in_db, vk_token_user, get_user_info
+from vk_folder.people_search import vk_token_user, get_user_info
 from sqlalchemy import select, insert
 
 token_user = os.getenv('token_user')
