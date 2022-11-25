@@ -58,9 +58,16 @@ def sender (id, text, key):
     vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': key})
 
 # пустая клваиатура, чтобы ее передавать.
-clear_key = get_keyboard(
-    []
-)
+
+def clear_key():
+    clear_key = get_keyboard(
+        []
+    )
+    return clear_key
+
+# clear_key = get_keyboard(
+#     []
+# )
 
 menu_find_people = get_keyboard([
     [('Добавить в контакты', 'синий')], [('Следующий человек', 'зеленый')]
@@ -98,7 +105,7 @@ for event in longpoll.listen():
             msg = event.text.lower()
 
             if msg in iniciate_messages:
-                sender(id, 'hello', clear_key)
+                sender(id, 'hello', clear_key())
 
 
             if msg == 'start':
