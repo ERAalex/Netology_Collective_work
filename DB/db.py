@@ -1,27 +1,19 @@
 import sqlalchemy
-from psycopg2 import connect
-######
-import psycopg2
-import psycopg2.extras
-######
+from psycopg2 import extras, connect
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from DB.models import Users, Selected, Photos, UsersSelected, Banned, create_tables
 
-from DB.models import Users, Selected, Photos, UsersSelected, Banned, create_tables
-
-
+from models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables
 
 
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': 'nazca007',
+        'password': '_________', # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
         }
-
 
 
 class DB:
@@ -33,13 +25,13 @@ class DB:
         self.engine = sqlalchemy.create_engine(DSN)
         ######
         # Нужен коннектор и кур. + сессия, для запросов sqlalchemy в боте + пришлось приписать пару библиотек
-        self.conn = psycopg2.connect(dbname="vvvkinder", user="postgres", password="nazca007", host="localhost")
-        self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
+        # self.conn = connect(dbname="vvvkinder", user="postgres", password="nazca007", host="localhost")
+        # self.cur = self.conn.cursor(cursor_factory=extras.DictCursor)
+        # Session = sessionmaker(bind=self.engine)
+        # self.session = Session()
         ######
-
     def create_database(self):
+        '''создание новой БД'''
         self.conn = connect(user=self.conn_info['username'],
                             password=self.conn_info['password'],
                             host=self.conn_info['host'],
@@ -52,12 +44,14 @@ class DB:
         self.conn.close()
     
     def create_table(self):
+        '''запуск создания всех таблиц'''
         create_tables(self.engine)
 
-    
     def add_user(self, user_info: dict):
+        '''добавление нового пользователя в БД'''
         Session = sessionmaker(bind=self.engine)
         db_session = Session()
+        # проверка на нахождение пользователя в базе
         chek_query = db_session.query(Users).filter(Users.vk_id == user_info['vk_id']).all()
         if not chek_query:
             add_query = Users(name=user_info['name'],
@@ -81,6 +75,7 @@ class DB:
             db_session.close()
 
     def add_selected(self, selected_info: dict):
+        '''добавление выбранного пользователя в БД'''
         Session = sessionmaker(bind=self.engine)
         db_session = Session()
         add_query = Selected(name=selected_info['name'],
@@ -100,8 +95,10 @@ class DB:
                              gender=selected_info['gender']
                              )
         db_session.add(add_query)
+        # получение id только что внесенной записи выбранного пользователя
         db_session.flush()
         id_query = add_query.id
+        # добавление фотографий выбранного пользователя в таблицу Photos
         selected_photos = []
         for photo in selected_info['photo']:
             selected_photos.append(Photos(photo_id=photo, id_selected=id_query))
@@ -109,7 +106,85 @@ class DB:
         db_session.commit()
         db_session.close()
 
+    def mark_users_selected(self, user_id, selected_id):
+        '''добавление связи пользователя с его выбранным пользоваетелем'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = UsersSelected(id_user=user_id, id_selected=selected_id)
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
     
+    def add_banned(self, user_id, selected_vk_id):
+        '''добавление в бан лист'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = Banned(self, id_user=user_id, banned_vk_id=selected_vk_id)
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+    
+    def mark_deleted_from_selected(self, user_id, selected_id):
+        '''отметка пользователя удаленным из БД (не показывать потзователю аккаунты в флагом deleted)'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = DeletedSelected(id_user=user_id, id_selected=selected_id)
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+    def search_user_from_db(self, user_vk_id):
+        '''получения словаря с информацией о пользователе из БД'''
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        query = session.query(Users).filter(Users.vk_id == user_vk_id).all()
+        session.close()
+        result = {}
+        for column in query:
+            result = {'name': column.name,
+                      'last_name': column.last_name,
+                      'vk_id': column.vk_id,
+                      'age': column.age,
+                      'relations': column.relations,
+                      'b_day': column.b_day,
+                      'city': column.city,
+                      'language': column.language,
+                      'activities': column.activities, 
+                      'interests': column.interests,
+                      'movies': column.movies,
+                      'books': column.books,
+                      'games': column.games, 
+                      'music': column.music, 
+                      'gender': column.gender
+                      }
+        return result
+
+    def search_selected_from_db(self, selected_vk_id):
+        '''получения словаря с информацией о выбранном пользователе из БД'''
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        query = session.query(Selected).filter(Selected.vk_id == selected_vk_id).all()
+        session.close()
+        result = {}
+        for column in query:
+            result = {'name': column.name,
+                      'last_name': column.last_name,
+                      'vk_id': column.vk_id,
+                      'age': column.age,
+                      'relations': column.relations,
+                      'b_day': column.b_day,
+                      'city': column.city,
+                      'language': column.language,
+                      'activities': column.activities, 
+                      'interests': column.interests,
+                      'movies': column.movies,
+                      'books': column.books,
+                      'games': column.games, 
+                      'music': column.music, 
+                      'gender': column.gender
+                      }
+        return result
+        
 
 test_user = {
     'name': 'Sergey',
@@ -151,10 +226,13 @@ test_selected = {
 
 # Тест запусков
 
-run_db = DB(**CONNECT)
+# run_db = DB(**CONNECT)
 # test = run_db.create_database()
 # create = run_db.create_table()
 
 # test2 = run_db.add_user(test_user)
 #
 # test3 = run_db.add_selected(test_selected)
+
+# test_user_info = run_db.search_user_from_db('id459484548495')
+# print(test_user_info)
