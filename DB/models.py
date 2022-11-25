@@ -27,6 +27,7 @@ class Users(Base):
     # gender = relationship('Gender', backref='users')
     users_selected = relationship('UsersSelected', backref='users')
     banned = relationship('Banned', backref='users')
+    deleted_selected = relationship('DeletedSelected', backref='users')
 
 
 class Selected(Base):
@@ -52,6 +53,7 @@ class Selected(Base):
     # gender = relationship('Gender', backref='selected')
     photo = relationship('Photos', backref='selected')
     users_selected = relationship('UsersSelected', backref='selected')
+    deleted = relationship('DeletedSelected', backref='selected')
 
 
 # class Gender(Base):
@@ -83,6 +85,14 @@ class Banned(Base):
     id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
     id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=False)
     banned_vk_id = sqa.Column(sqa.Text, nullable=False)
+
+
+class DeletedSelected(Base):
+    __tablename__ = 'selected_deleted'
+
+    id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
+    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=False)
+    id_selected = sqa.Column(sqa.Integer, sqa.ForeignKey('selected.id'), nullable=False)
 
 
 def create_tables(engine):
