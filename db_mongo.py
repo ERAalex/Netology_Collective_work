@@ -1,6 +1,6 @@
 import pymongo
 from pymongo import MongoClient
-from vk_finder import find_data_person
+
 
 
 # Create the client

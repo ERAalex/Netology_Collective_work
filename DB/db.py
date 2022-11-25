@@ -1,18 +1,27 @@
 import sqlalchemy
 from psycopg2 import connect
+######
+import psycopg2
+import psycopg2.extras
+######
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from DB.models import Users, Selected, Photos, UsersSelected, Banned, create_tables
 
-from models import Users, Selected, Photos, UsersSelected, Banned, create_tables
+from DB.models import Users, Selected, Photos, UsersSelected, Banned, create_tables
+
+
+
 
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': 'SN33Vf8m',
+        'password': 'nazca007',
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
         }
+
 
 
 class DB:
@@ -22,6 +31,13 @@ class DB:
         self.conn_info = conn_info
         DSN = sqlalchemy.engine.url.URL.create(**conn_info)
         self.engine = sqlalchemy.create_engine(DSN)
+        ######
+        # Нужен коннектор и кур. + сессия, для запросов sqlalchemy в боте + пришлось приписать пару библиотек
+        self.conn = psycopg2.connect(dbname="vvvkinder", user="postgres", password="nazca007", host="localhost")
+        self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
+        ######
 
     def create_database(self):
         self.conn = connect(user=self.conn_info['username'],
@@ -139,6 +155,6 @@ run_db = DB(**CONNECT)
 # test = run_db.create_database()
 # create = run_db.create_table()
 
-test2 = run_db.add_user(test_user)
-
-test3 = run_db.add_selected(test_selected)
+# test2 = run_db.add_user(test_user)
+#
+# test3 = run_db.add_selected(test_selected)

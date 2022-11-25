@@ -1,4 +1,5 @@
 import random, vk_api, vk_folder
+from pprint import pprint
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
@@ -6,6 +7,12 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 import json
 import os
 from vk_folder.some_frases import iniciate_messages
+from DB.db import DB, CONNECT
+from DB.models import Users
+from vk_folder.people_search import vk_token_user, get_user_info
+from sqlalchemy import select, insert
+
+token_user = os.getenv('token_user')
 
 token = os.getenv('token')
 vk_session = vk_api.VkApi(token=token)
@@ -55,7 +62,6 @@ clear_key = get_keyboard(
     []
 )
 
-
 menu_find_people = get_keyboard([
     [('Добавить в контакты', 'синий')], [('Следующий человек', 'зеленый')]
 ])
@@ -69,10 +75,10 @@ menu_check_db = get_keyboard([
 ])
 
 
+user_db = DB(**CONNECT)
 
 
 user = User(100, 'some')
-
 users = [user]
 
 for event in longpoll.listen():
@@ -80,6 +86,15 @@ for event in longpoll.listen():
         if event.to_me:
 
             id = event.user_id
+
+
+            # проверяем есть ли такой пользователь в базе
+            data = get_user_info(id, token_user)
+            user_db.add_user(data)
+
+
+
+
             msg = event.text.lower()
 
             if msg in iniciate_messages:
