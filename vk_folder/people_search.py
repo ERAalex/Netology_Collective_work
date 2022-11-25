@@ -4,8 +4,8 @@ from pprint import pprint
 import datetime
 from sqlalchemy import select, insert
 from random import randint
-# from DB.models import Users
-# from DB.db import DB, CONNECT
+from DB.models import Users
+from DB.db import DB, CONNECT
 
 
 class User_vk:
@@ -14,7 +14,7 @@ class User_vk:
         self.vk_u = vk_api.VkApi(token=vk_token)
         self.session_api = self.vk_u.get_api()
 
-    def get_user_info(self, vk_id: int, token: str):
+    def get_user_info(self, vk_id: int):
         '''
         функция, которая собирает данные пользователя чат-бота в словарь
         '''
@@ -88,7 +88,6 @@ class User_vk:
         return user_dict
 
 a = User_vk(os.getenv('token'))
-print(a.get_user_info('71719671', os.getenv('token')))
 
 
 #список людей, из которых делать выборку
@@ -97,11 +96,11 @@ print(a.get_user_info('71719671', os.getenv('token')))
 # wishing_age_from = input('Введите начальный возраст собеседника: ')
 # wishing_age_till = input('Введите конечный возраст собеседника: ')
 class vk_choice:
-    def __init__(self, vk_token_user, vk_token, vk_s, vk_u, session_api_user, session_api):
-        self.vk_token_user = os.getenv('token_user')
-        self.vk_token = os.getenv('token')
-        self.vk_s = vk_api.VkApi(token=self.vk_token)
-        self.vk_u = vk_api.VkApi(token=self.vk_token_user)
+    def __init__(self, vk_token_user, vk_token):
+        self.vk_token_user = vk_token_user
+        self.vk_token = vk_token
+        self.vk_s = vk_api.VkApi(token=vk_token)
+        self.vk_u = vk_api.VkApi(token=vk_token_user)
         self.session_api_user = self.vk_u.get_api()
         self.session_api = self.vk_s.get_api()
 
@@ -173,6 +172,8 @@ class vk_choice:
         all_photo_attachments = []
         for el in most_liked:
             all_photo_attachments.append(f'photo{profile_id_int}_{el["id"]}')
-        send_info = self.session_api.messages.send(user_id = f'{self.vk_id}', random_id=randint(0, 1000), message=f'{name} {surname}\nhttps://vk.com/{profile_all_info_to_bd["vk_id"]}', attachment=f'{all_photo_attachments[0]},{all_photo_attachments[1]},{all_photo_attachments[2]}')
+        send_info = self.session_api.messages.send(user_id = f'{vk_id}', random_id=randint(0, 1000), message=f'{name} {surname}\nhttps://vk.com/{profile_all_info_to_bd["vk_id"]}', attachment=f'{all_photo_attachments[0]},{all_photo_attachments[1]},{all_photo_attachments[2]}')
         return send_info
 
+some_choice = vk_choice(os.getenv('token_user'), os.getenv('token'))
+some_choice.send_info_in_bot()
