@@ -87,6 +87,7 @@ for event in longpoll.listen():
 
             id = event.user_id
 
+
             # проверяем есть ли такой пользователь в базе
             data_user_find = user_db.session.query(Users).filter_by(vk_id=str(id))
 

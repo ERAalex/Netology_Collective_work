@@ -92,27 +92,30 @@ def get_user_info(vk_id, token):
 
 def put_user_data_in_db(vk_id, token):
     data_user = get_user_info(vk_id, token)
-
     db_user = DB(**CONNECT)
-    done = insert(Users).values(
-        name=data_user['name'],
-        last_name=data_user['last_name'],
-        vk_id=vk_id,
-        age=data_user['zaglushka'],
-        relations=data_user['relations'],
-        b_day=data_user['b_day'],
-        city=data_user['city'],
-        language=data_user['languages'],
-        activities=data_user['activities'],
-        interests=data_user['interests'],
-        movies=data_user['movies'],
-        books=data_user['books'],
-        games=data_user['games'],
-        music=data_user['music'],
-        gender=data_user['gender'])
-    with db_user.engine.connect() as conn:
-        result = conn.execute(done)
-        db_user.conn.commit()
+
+    db_user.add_user(data_user)
+
+    #
+    # done = insert(Users).values(
+    #     name=data_user['name'],
+    #     last_name=data_user['last_name'],
+    #     vk_id=vk_id,
+    #     age=data_user['zaglushka'],
+    #     relations=data_user['relations'],
+    #     b_day=data_user['b_day'],
+    #     city=data_user['city'],
+    #     language=data_user['languages'],
+    #     activities=data_user['activities'],
+    #     interests=data_user['interests'],
+    #     movies=data_user['movies'],
+    #     books=data_user['books'],
+    #     games=data_user['games'],
+    #     music=data_user['music'],
+    #     gender=data_user['gender'])
+    # with db_user.engine.connect() as conn:
+    #     result = conn.execute(done)
+    #     db_user.conn.commit()
 
 
 
