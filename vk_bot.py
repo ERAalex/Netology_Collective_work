@@ -8,7 +8,8 @@ import os
 from vk_folder.some_frases import iniciate_messages
 from DB.db import DB, CONNECT
 from DB.models import Users
-from sqlalchemy import select
+from vk_folder.people_search import get_user_info
+from sqlalchemy import select, insert
 
 
 
@@ -76,7 +77,6 @@ menu_check_db = get_keyboard([
 user_db = DB(**CONNECT)
 
 
-
 user = User(100, 'some')
 users = [user]
 
@@ -85,12 +85,22 @@ for event in longpoll.listen():
         if event.to_me:
 
             id = event.user_id
-            print(id)
 
+            # проверяем есть ли такой пользователь в базе
+            stm = user_db.session.query(Users).filter_by(vk_id=id)
+            check = 'no_person'
+            for item in stm:
+                check = item.name
+            if check == 'no_person':
+                print('net takogo')
+                data_user = get_user_info(id)
+                stmt = (insert(Users).values(
+                    name=data_user['name'],
+                    fullname='Full Username')
+                )
+            else:
+                print('yest takoy')
 
-
-            stm = select(Users).where(Users.id == id)
-            print(stm)
 
 
 
