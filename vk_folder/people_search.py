@@ -4,29 +4,31 @@ from pprint import pprint
 import datetime
 from sqlalchemy import select, insert
 from random import randint
-from DB.models import Users
-from DB.db import DB, CONNECT
+# from DB.models import Users
+# from DB.db import DB, CONNECT
 
 
 class User_vk:
-
-    def __init__(self, vk_s, session_api, vk_token):
-        self.vk_token = os.getenv('token') #токен владельца сообщества с чат-ботом
-        self.vk_s = vk_api.VkApi(token=self.vk_token) #основной класс библиотеки vk_api
-        self.session_api = self.vk_s.get_api() #подключение к api
+    def __init__(self, vk_token):
+        self.vk_token_user = vk_token
+        self.vk_u = vk_api.VkApi(token=vk_token)
+        self.session_api = self.vk_u.get_api()
 
     def get_user_info(self, vk_id: int, token: str):
         '''
         функция, которая собирает данные пользователя чат-бота в словарь
         '''
         user_dict = {}
-        user_profile = self.session_api.users.get(user_ids=self.vk_id,
+        user_profile = self.session_api.users.get(user_ids=vk_id,
                                                 fields='domain, relation, city, sex, bdate, personal, activities, interests, movies, books, music, games, education')
 
         user_dict['vk_id'] = user_profile[0]['domain']
         user_dict['name'] = user_profile[0]['first_name']
         user_dict['last_name'] = user_profile[0]['last_name']
-        user_dict['relations'] = user_profile[0]['relation']
+        if 'relation' in user_profile[0]:
+            user_dict['relations'] = user_profile[0]['relation']
+        else:
+            user_dict['relations'] = ''
         # 1 — не женат / не замужем;
         # 2 — есть друг / есть подруга;
         # 3 — помолвлен / помолвлена;
@@ -49,8 +51,9 @@ class User_vk:
             user_dict['city'] = user_profile[0]['city']['title']
         else:
             user_dict['city'] = ''
-        if 'langs' in user_profile[0]['personal']:
-            user_dict['language'] = user_profile[0]['personal']['langs']
+        if 'personal' in user_profile[0]:
+            if 'langs' in user_profile[0]['personal']:
+                user_dict['language'] = user_profile[0]['personal']['langs']
         else:
             user_dict['language'] = ''
         if 'activities' in user_profile[0]:
@@ -84,6 +87,8 @@ class User_vk:
 
         return user_dict
 
+a = User_vk(os.getenv('token'))
+print(a.get_user_info('71719671', os.getenv('token')))
 
 
 #список людей, из которых делать выборку
