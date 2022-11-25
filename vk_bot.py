@@ -9,7 +9,7 @@ import os
 from vk_folder.some_frases import iniciate_messages
 from DB.db import DB, CONNECT
 from DB.models import Users
-from vk_folder.people_search import put_user_data_in_db, vk_token_user
+from vk_folder.people_search import put_user_data_in_db, vk_token_user, get_user_info
 from sqlalchemy import select, insert
 
 token_user = os.getenv('token_user')
@@ -89,14 +89,8 @@ for event in longpoll.listen():
 
 
             # проверяем есть ли такой пользователь в базе
-            data_user_find = user_db.session.query(Users).filter_by(vk_id=str(id))
-
-            check = ''
-            for item in data_user_find:
-                check = item.name
-            if check == '':
-                # отправляемся в модуль поиска, ищем человека и сразу кидаем в базу
-                result = put_user_data_in_db(id, token_user)
+            data = get_user_info(id, token_user)
+            user_db.add_user(data)
 
 
 
