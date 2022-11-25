@@ -1,4 +1,5 @@
 import random, vk_api, vk_folder
+from pprint import pprint
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
@@ -8,10 +9,10 @@ import os
 from vk_folder.some_frases import iniciate_messages
 from DB.db import DB, CONNECT
 from DB.models import Users
-from vk_folder.people_search import get_user_info
+from vk_folder.people_search import put_user_data_in_db, vk_token_user
 from sqlalchemy import select, insert
 
-
+token_user = os.getenv('token_user')
 
 token = os.getenv('token')
 vk_session = vk_api.VkApi(token=token)
@@ -87,19 +88,14 @@ for event in longpoll.listen():
             id = event.user_id
 
             # проверяем есть ли такой пользователь в базе
-            stm = user_db.session.query(Users).filter_by(vk_id=id)
-            check = 'no_person'
-            for item in stm:
+            data_user_find = user_db.session.query(Users).filter_by(vk_id=str(id))
+
+            check = ''
+            for item in data_user_find:
                 check = item.name
-            if check == 'no_person':
-                print('net takogo')
-                data_user = get_user_info(id)
-                stmt = (insert(Users).values(
-                    name=data_user['name'],
-                    fullname='Full Username')
-                )
-            else:
-                print('yest takoy')
+            if check == '':
+                # отправляемся в модуль поиска, ищем человека и сразу кидаем в базу
+                result = put_user_data_in_db(id, token_user)
 
 
 

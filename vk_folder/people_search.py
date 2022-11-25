@@ -16,12 +16,16 @@ session_api = vk_s.get_api()
 
 
 ### надо подать на вход функции id_vk, чтобы понимать кого проверять или у кого собирать данные + поменять user_ids
-def get_user_info(vk_id):
+def get_user_info(vk_id, token):
     '''
     функция, которая собирает данные пользователя чат-бота в словарь
     '''
+    vk_s_user = vk_api.VkApi(token=token)
+    session_api_us = vk_s_user.get_api()
+
     user_dict = {}
-    user_profile = session_api.users.get(user_ids=vk_id, fields='domain, relation, city, sex, bdate, personal, activities, interests, movies, books, music, games, education')
+    user_profile = session_api_us.users.get(user_ids=vk_id, fields='domain, relation, city, sex, bdate, personal, activities, interests, movies, books, music, games, education')
+
     user_dict['vk_id'] = user_profile[0]['domain']
     user_dict['name'] = user_profile[0]['first_name']
     user_dict['last_name'] = user_profile[0]['last_name']
@@ -86,8 +90,8 @@ def get_user_info(vk_id):
 # print(get_user_info())
 
 
-def put_user_data_in_db(vk_id):
-    data_user = get_user_info(vk_id)
+def put_user_data_in_db(vk_id, token):
+    data_user = get_user_info(vk_id, token)
 
     db_user = DB(**CONNECT)
     done = insert(Users).values(
@@ -112,7 +116,7 @@ def put_user_data_in_db(vk_id):
 
 
 
-put_user_data_in_db(558826)
+# put_user_data_in_db(558826)
 
 
 #список людей, из которых делать выборку
