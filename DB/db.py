@@ -272,9 +272,11 @@ test_selected = {
 }
 
 
-# Тест запусков
-
+# не трогать ниже строчку, я ею пользуюсь в bot
 run_db = DB(**CONNECT)
+
+
+
 # test = run_db.create_database()
 # create = run_db.create_table()
 #
@@ -285,7 +287,7 @@ run_db = DB(**CONNECT)
 # run_db.mark_users_selected(12, 2)
 
 
-run_db.find_using_users_selected(12)
+# run_db.find_using_users_selected(12)
 
 # test_user_info = run_db.search_user_from_db('id459484548495')
 # print(test_user_info)

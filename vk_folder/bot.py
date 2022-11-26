@@ -7,10 +7,10 @@ from vk_folder.some_frases import iniciate_messages
 from db_mongo import find_document, series_collection, insert_document
 import os
 
-from DB.db import DB, CONNECT
+from DB.db import DB, CONNECT, run_db
 from DB.models import Users
 
-from vk_folder.people_search import User_vk
+from vk_folder.people_search import User_vk, some_choice
 
 
 
@@ -23,6 +23,7 @@ session_api = vk_s.get_api()
 
 
 people_search = User_vk(token_user)
+
 
 
 class User:
@@ -45,7 +46,15 @@ class Bot:
         self.vk = self.vk_session.get_api()
         user = User(100, 'some')
         self.users = [user]
+        # нам нужен для просмотра людей в БД, это список и при нажатии на кнопку дальше, мы выбираешь следующего
+        # как только мы нажали на start count обнуляется и если человек начнет смотреть БД, то снова с 0 список людей
         self.count = 0
+        # param_persons = нужен нам для сохранения данных по людям, которых искать, и будем перезаписывать каждый раз
+        # при подаче новых данных для поиска от пользователя
+        self.param_persons = {}
+        # offset выводит в вк следующего человека в списке из полученных. т.е. 0 - самый первый в списке, потом
+        # 2,3 и т.д., будем увеличивать при пролистывании людей, чтобы не показывать 1 и тех же
+        self.offset_vk = 0
 
 
     def sender(self, id, text, key):
@@ -122,6 +131,8 @@ class Bot:
 
                     if msg == 'start':
                         flag = 0
+                        self.count = 0
+                        self.offset_vk = 0
                         for user in self.users:
                             if user.id == id:
                                 flag = 1
@@ -132,7 +143,7 @@ class Bot:
                                 self.sender(id, 'Что будем делать? Наберите цифру: \n'
                                            '1- Посмотреть добавленные контакты \n'
                                            '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
-                                           '3- Общий поиск людей \n'
+                                           '3- Общий поиск людей(указать пол, возраст, город) \n'
                                            '\n'
                                            '\n'
                                            ' ', self.clear_key_board())
@@ -153,7 +164,7 @@ class Bot:
                                         self.sender(id, 'Для общего поиска людей выберите кого ищем \n ',
                                                self.menu_sex_key_board())
                                         user.mode = 'menu_sex'
-                                        print(user.mode)
+
 
 
 
@@ -206,25 +217,95 @@ class Bot:
 
                                 elif user.mode == 'menu_sex':
                                     if msg == 'девушку':
-                                        self.sender(id, 'Выводим девушек, тут идет функция поиска (Девушек) '
-                                                   'и вывода \n ', self.menu_find_people_key_board())
-                                        user.mode = 'girl_find'
+                                        self.sender(id, 'напишите возраст девушки, например: 27',
+                                                    self.clear_key_board())
+                                        user.mode = 'girl_find_age'
+                                        break
+
 
                                     if msg == 'парня':
                                         self.sender(id, 'Выводим парней, тут идет функция поиска (Парней) '
                                                    'и вывода \n ', self.menu_find_people_key_board())
                                         user.mode = 'boy_find'
 
-                                if user.mode == 'girl_find':
-                                    if msg == 'следующий человек':
-                                        self.sender(id, 'Продолжаем вывод, тут идет функция поиска (Девушек) '
-                                                   'и вывода \n ', self.menu_find_people_key_board())
-                                        user.mode = 'girl_find'
 
+                                # меню выбора с девушкой
+                                if user.mode == 'girl_find_age':
+                                    # обрабатываем не корректный ввод пользователя + нам надо увериться, что это
+                                    # наше сообщение, оно должно быть числом
+                                    try:
+                                        decision = int(msg)
+                                        if decision:
+                                            girl_decision_age = msg
+                                            # мы создали словарь, куда будем пересоздавать данные людей
+                                            # для ввода в наш поиск, для аргументов.
+                                            self.param_persons['age_girl'] = int(girl_decision_age)
+                                            self.sender(id, 'напишите город в котором искать',
+                                                        self.clear_key_board())
+                                            user.mode = 'girl_find_city'
+                                            break
+                                    except:
+                                        self.sender(id, 'вы не ввели число, повторите ввод возраста девушки',
+                                                    self.clear_key_board())
+                                        user.mode = 'girl_find_age'
+
+                                # тут функция с выводом девушки
+                                if user.mode == 'girl_find_city':
+                                    if msg:
+                                        self.param_persons['city_girl'] = msg
+                                        # конвертируем имя города в id
+                                        city_decis = some_choice.get_city_id(self.param_persons['city_girl'])
+
+                                        # теперь у нас есть два аргумента для функции в словаре self.param_persons
+                                        result_find_girl = some_choice.get_all_available_people\
+                                            (1, self.param_persons['age_girl'], city_decis, self.offset_vk)
+
+                                        #сразу сохраянем id_vk в словарь, если кликнут на добавление в БД используем,
+                                        #если нет перезапишем следующим выбором.
+                                        self.param_persons['vk_id'] = result_find_girl['vk_id']
+
+                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["lastname"]}'
+                                                        f'  https://vk.com/{result_find_girl["vk_id"]}'
+                                                        f'\n ', self.menu_find_people_key_board())
+                                        # увеличваем offset для вывода следующего человека в поиске  вк
+                                        self.offset_vk += 1
+                                        user.mode = 'girl_find_run'
+
+
+                                if user.mode == 'girl_find_run':
+                                    if msg == 'следующий человек':
+                                        result_find_girl = some_choice.get_all_available_people\
+                                            (1, self.param_persons['age_girl'],
+                                             some_choice.get_city_id(self.param_persons['city_girl']), self.offset_vk)
+
+                                        # cохраняем vk_id выбора если вдруг хахотят добавит в БД
+                                        self.param_persons['vk_id'] = result_find_girl['vk_id']
+
+                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["lastname"]}'
+                                                        f'  https://vk.com/{result_find_girl["vk_id"]}'
+                                                        f'\n ', self.menu_find_people_key_board())
+                                        self.offset_vk += 1
+                                        user.mode = 'girl_find_run'
+
+
+##################### застрял тут надо доработать
                                     if msg == 'добавить в контакты':
+                                        result_id = self.param_persons['vk_id']
+                                        # нам надо выкинуть id из id32334342
+                                        result_id_split = result_id.replace('id', '')
+                                        try:
+                                            result_id_fin = int(result_id_split)
+                                        except:
+                                            result_id_fin = people_search.find_id_using_screen(result_id_split)
+
+                                        data_people_selected = some_choice.get_rel_people_by_id(result_id_fin)
+
+                                        print(data_people_selected)
+
                                         self.sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
                                                    'и вывода \n ', self.menu_find_people_key_board())
-                                        user.mode = 'girl_find'
+                                        user.mode = 'girl_find_run'
+
 
                                 if user.mode == 'boy_find':
                                     if msg == 'следующий человек':
