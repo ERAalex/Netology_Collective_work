@@ -262,11 +262,44 @@ class Bot:
 
                                         #сразу сохраянем id_vk в словарь, если кликнут на добавление в БД используем,
                                         #если нет перезапишем следующим выбором.
-                                        self.param_persons['vk_id'] = result_find_girl['vk_id']
+                                        # если вдруг vk_id имя а не номер, чистим
+                                        result_id = result_find_girl['vk_id']
+                                        result_id_split = result_id.replace('id', '')
+                                        # если id можно выразить числом, все хорошо, если id изменен как имя, то
+                                        # ищем реальный id человека
+                                        try:
+                                            result_id_fin = int(result_id_split)
+                                            self.param_persons['vk_id'] = result_id_fin
+                                        except:
+                                            result_id_fin = some_choice.find_id_using_screen(result_id_split)
+                                            self.param_persons['vk_id'] = result_id_fin
+                                            # там словарь приходит, достаем конкретно id
 
-                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["lastname"]}'
+
+
+#### Тут жуть просто для теста, временно
+                                        data_people_selected = some_choice.get_rel_people_by_id(self.param_persons['vk_id'])
+                                        foto1 = ''
+                                        foto2 = ''
+                                        foto3 = ''
+                                        count_photo = 0
+                                        for item in data_people_selected["photo"]:
+                                            if count_photo == 0:
+                                                foto1 = item
+                                                count_photo += 1
+                                            if count_photo == 1:
+                                                foto2 = item
+                                                count_photo += 1
+                                            if count_photo == 2:
+                                                foto3 = item
+                                                count_photo += 1
+
+                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["last_name"]}'
                                                         f'  https://vk.com/{result_find_girl["vk_id"]}'
-                                                        f'\n ', self.menu_find_people_key_board())
+                                                        f' foto: {foto1}\n'
+                                                        f' foto: {foto1}\n'
+                                                        f' foto: {foto1}\n',
+                                                    self.menu_find_people_key_board())
                                         # увеличваем offset для вывода следующего человека в поиске  вк
                                         self.offset_vk += 1
                                         user.mode = 'girl_find_run'
@@ -281,7 +314,7 @@ class Bot:
                                         # cохраняем vk_id выбора если вдруг хахотят добавит в БД
                                         self.param_persons['vk_id'] = result_find_girl['vk_id']
 
-                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["lastname"]}'
+                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["last_name"]}'
                                                         f'  https://vk.com/{result_find_girl["vk_id"]}'
                                                         f'\n ', self.menu_find_people_key_board())
                                         self.offset_vk += 1
@@ -305,11 +338,17 @@ class Bot:
 
                                         print(data_people_selected)
 
+                                        run_db.add_selected(data_people_selected)
 
 
                                         self.sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
                                                    'и вывода \n ', self.menu_find_people_key_board())
                                         user.mode = 'girl_find_run'
+
+
+
+
+
 
 
                                 if user.mode == 'boy_find':

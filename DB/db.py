@@ -74,6 +74,7 @@ class DB:
             db_session.commit()
             db_session.close()
 
+
     def add_selected(self, selected_info: dict):
         '''добавление выбранного пользователя в БД'''
         Session = sessionmaker(bind=self.engine)

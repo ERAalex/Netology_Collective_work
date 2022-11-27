@@ -132,8 +132,8 @@ class vk_choice:
 
     def get_rel_people_by_id(self, id):
         people = self.session_api_user.users.get(user_ids=id,
-                                                    fields='domain, relation, personal, city, about, '
-                                                                          'sex, bdate, birth_year, activities, '
+                                                    fields='domain, relation, personal, city, about, music, '
+                                                                          'sex, books,  bdate, birth_year, activities,'
                                                                           'interests, education, games')
 
         people_dict = {}
@@ -152,17 +152,17 @@ class vk_choice:
             else:
                 people_dict['city'] = ''
             if 'langs' in el:
-                people_dict['languages'] = el['personal']['langs']
+                people_dict['language'] = el['personal']['langs']
             else:
-                people_dict['languages'] = ''
+                people_dict['language'] = ''
 
             people_dict['name'] = el['first_name']
-            people_dict['lastname'] = el['last_name']
+            people_dict['last_name'] = el['last_name']
 
             if 'relation' in el:
-                people_dict['relationship'] = el['relation']
+                people_dict['relations'] = el['relation']
             else:
-                people_dict['relationship'] = 0
+                people_dict['relations'] = 0
 
             # 1 — не женат / не замужем;
             # 2 — есть друг / есть подруга;
@@ -190,6 +190,25 @@ class vk_choice:
                 people_dict['games'] = el['games']
             else:
                 people_dict['games'] = ''
+            if 'age' in el:
+                people_dict['age'] = el['age']
+            else:
+                people_dict['age'] = 0
+            if 'movies' in el:
+                people_dict['movies'] = el['movies']
+            else:
+                people_dict['movies'] = ''
+            if 'books' in el:
+                people_dict['books'] = el['books']
+            else:
+                people_dict['books'] = ''
+            if 'music' in el:
+                people_dict['music'] = el['music']
+            else:
+                people_dict['music'] = ''
+
+            people_dict['photo'] = self.get_top_3_foto(id)
+
             return people_dict
 
 
@@ -199,8 +218,8 @@ class vk_choice:
                                                     blacklisted_by_me=0, birth_year=(2022-int(age)),
                                                     has_photo=1, count=30, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
-                                                                          'sex, bdate, birth_year, activities, '
-                                                                          'interests, education, games')
+                                                                          'sex, books, bdate, birth_year, activities, '
+                                                                          'interests, education, movies, games')
 
         people_dict = {}
         # Список людей не в блэклисте, у которых есть фото,
@@ -219,7 +238,7 @@ class vk_choice:
                 people_dict['languages'] = ''
 
             people_dict['name'] = el['first_name']
-            people_dict['lastname'] = el['last_name']
+            people_dict['last_name'] = el['last_name']
             people_dict['vk_id'] = el["domain"]
             if 'relation' in el:
                 people_dict['relationship'] = el['relation']
@@ -252,10 +271,28 @@ class vk_choice:
                 people_dict['games'] = el['games']
             else:
                 people_dict['games'] = ''
+            if 'movies' in el:
+                people_dict['movies'] = el['movies']
+            else:
+                people_dict['movies'] = ''
             return people_dict
 
     # profile_all_info_to_bd = get_all_available_people()
 
+
+    def get_top_3_foto(self, id):
+        '''функция по сохранению 3 фото из id'''
+        profile_photos = self.session_api_user.photos.get(owner_id=id, extended=1, album_id='profile')['items']
+
+        most_liked = sorted(profile_photos, key=lambda likes: likes['likes']['count'], reverse=True)[:3]
+        all_photo_attachments = []
+        # достаем картинки из топ 3, причем конкретно большого размера
+        for item in most_liked:
+            for item_s in item['sizes']:
+                if item_s['type'] == 'z':
+                    all_photo_attachments.append(item_s['url'])
+
+        return all_photo_attachments
 
 
     def send_info_in_bot(self):
@@ -267,12 +304,14 @@ class vk_choice:
         surname = profile_all_info_to_bd['lastname']
         profile_id_int = self.session_api.users.get(user_ids=profile_all_info_to_bd['vk_id'])[0]['id']
         profile_photos = self.session_api_user.photos.get(owner_id=profile_id_int, extended=1, album_id='profile')['items']
-        most_liked = sorted(profile_photos, key = lambda likes: likes['likes']['count'], reverse=True)[:3]
+        most_liked = sorted(profile_photos, key=lambda likes: likes['likes']['count'], reverse=True)[:3]
         all_photo_attachments = []
         for el in most_liked:
             all_photo_attachments.append(f'photo{profile_id_int}_{el["id"]}')
         send_info = self.session_api.messages.send(user_id=f'{vk_id}', random_id=randint(0, 1000), message=f'{name} {surname}\nhttps://vk.com/{profile_all_info_to_bd["vk_id"]}', attachment=f'{all_photo_attachments[0]},{all_photo_attachments[1]},{all_photo_attachments[2]}')
         return send_info
+
+
 
 # не удалять строчки внизу, используются
 some_choice = vk_choice(os.getenv('token_user'), os.getenv('token'))
@@ -284,6 +323,8 @@ user_need = User_vk(os.getenv('token_user'))
 # some_choice.get_city_id('москва')
 # some_choice.send_info_in_bot()
 
-some_choice.get_rel_people_by_id(705169327)
+# some_choice.get_rel_people_by_id(705169327)
+
+# some_choice.get_top_3_foto(705169327)
 
 # print(some_choice.get_all_available_people(1))
