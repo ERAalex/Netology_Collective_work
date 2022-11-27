@@ -55,6 +55,8 @@ class Bot:
         # offset выводит в вк следующего человека в списке из полученных. т.е. 0 - самый первый в списке, потом
         # 2,3 и т.д., будем увеличивать при пролистывании людей, чтобы не показывать 1 и тех же
         self.offset_vk = 0
+        self.id_user_bot = ''
+        self.while_true = True
 
 
     def sender(self, id, text, key):
@@ -115,6 +117,7 @@ class Bot:
                 if event.to_me:
 
                     id = event.user_id
+                    self.id_user_bot = id
 
                     # проверяем есть ли такой пользователь в базе
                     user_db = DB(**CONNECT)
@@ -229,6 +232,9 @@ class Bot:
                                         user.mode = 'boy_find'
 
 
+
+
+
                                 # меню выбора с девушкой
                                 if user.mode == 'girl_find_age':
                                     # обрабатываем не корректный ввод пользователя + нам надо увериться, что это
@@ -249,76 +255,102 @@ class Bot:
                                                     self.clear_key_board())
                                         user.mode = 'girl_find_age'
 
+
+
                                 # тут функция с выводом девушки
                                 if user.mode == 'girl_find_city':
                                     if msg:
                                         self.param_persons['city_girl'] = msg
                                         # конвертируем имя города в id
                                         city_decis = some_choice.get_city_id(self.param_persons['city_girl'])
-
-                                        # теперь у нас есть два аргумента для функции в словаре self.param_persons
-                                        result_find_girl = some_choice.get_all_available_people\
-                                            (1, self.param_persons['age_girl'], city_decis, self.offset_vk)
-
-                                        #сразу сохраянем id_vk в словарь, если кликнут на добавление в БД используем,
-                                        #если нет перезапишем следующим выбором.
-                                        # если вдруг vk_id имя а не номер, чистим
-                                        result_id = result_find_girl['vk_id']
-                                        result_id_split = result_id.replace('id', '')
-                                        # если id можно выразить числом, все хорошо, если id изменен как имя, то
-                                        # ищем реальный id человека
-                                        try:
-                                            result_id_fin = int(result_id_split)
-                                            self.param_persons['vk_id'] = result_id_fin
-                                        except:
-                                            result_id_fin = some_choice.find_id_using_screen(result_id_split)
-                                            self.param_persons['vk_id'] = result_id_fin
-                                            # там словарь приходит, достаем конкретно id
+                                        self.param_persons['city_girl'] = city_decis
+                                        # # теперь у нас есть два аргумента для функции поиска
+                                        # в словаре self.param_persons
 
 
+                                        # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
+                                        while_true = True
+                                        while while_true == True:
+                                            # парсим людей по критериям
+                                            result_find_girl = some_choice.get_all_available_people \
+                                                (1, self.param_persons['age_girl'],
+                                                 self.param_persons['city_girl'], self.offset_vk)
 
-#### Тут жуть просто для теста, временно
-                                        data_people_selected = some_choice.get_rel_people_by_id(self.param_persons['vk_id'])
-                                        foto1 = ''
-                                        foto2 = ''
-                                        foto3 = ''
-                                        count_photo = 0
-                                        for item in data_people_selected["photo"]:
-                                            if count_photo == 0:
-                                                foto1 = item
-                                                count_photo += 1
-                                            if count_photo == 1:
-                                                foto2 = item
-                                                count_photo += 1
-                                            if count_photo == 2:
-                                                foto3 = item
-                                                count_photo += 1
+                                            result_id = result_find_girl['vk_id']
+                                            result_id_split = result_id.replace('id', '')
+                                            # если id можно выразить числом, все хорошо, если id изменен как имя, то
+                                            # ищем реальный id человека:
+                                            try:
+                                                result_id_fin = int(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                            except:
+                                                result_id_fin = some_choice.find_id_using_screen(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                                # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
 
-                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["last_name"]}'
-                                                        f'  https://vk.com/{result_find_girl["vk_id"]}'
-                                                        f' foto: {foto1}\n'
-                                                        f' foto: {foto1}\n'
-                                                        f' foto: {foto1}\n',
-                                                    self.menu_find_people_key_board())
-                                        # увеличваем offset для вывода следующего человека в поиске  вк
-                                        self.offset_vk += 1
-                                        user.mode = 'girl_find_run'
+                                            # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
+                                            # сразу выведет сообщение с фото, тогда мы стопаем цикл.
+                                            # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
+
+
+                                            # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
+                                            if some_choice.get_list_3_foto(result_id_fin) == False:
+                                                self.offset_vk += 1
+                                                print('следующий')
+                                            else:
+                                                self.sender(id,
+                                                            f'{result_find_girl["name"]}  {result_find_girl["last_name"]} \n'
+                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            self.menu_find_people_key_board())
+                                                user.mode = 'girl_find_run'
+                                                self.offset_vk += 1
+                                                while_true = False
+
+
 
 
                                 if user.mode == 'girl_find_run':
                                     if msg == 'следующий человек':
-                                        result_find_girl = some_choice.get_all_available_people\
-                                            (1, self.param_persons['age_girl'],
-                                             some_choice.get_city_id(self.param_persons['city_girl']), self.offset_vk)
 
-                                        # cохраняем vk_id выбора если вдруг хахотят добавит в БД
-                                        self.param_persons['vk_id'] = result_find_girl['vk_id']
+                                        # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
+                                        while_true = True
+                                        while while_true == True:
+                                            # парсим людей по критериям
+                                            result_find_girl = some_choice.get_all_available_people \
+                                                (1, self.param_persons['age_girl'],
+                                                 self.param_persons['city_girl'], self.offset_vk)
 
-                                        self.sender(id, f'{result_find_girl["name"]}  {result_find_girl["last_name"]}'
-                                                        f'  https://vk.com/{result_find_girl["vk_id"]}'
-                                                        f'\n ', self.menu_find_people_key_board())
-                                        self.offset_vk += 1
-                                        user.mode = 'girl_find_run'
+                                            result_id = result_find_girl['vk_id']
+                                            result_id_split = result_id.replace('id', '')
+                                            # если id можно выразить числом, все хорошо, если id изменен как имя, то
+                                            # ищем реальный id человека:
+                                            try:
+                                                result_id_fin = int(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                            except:
+                                                result_id_fin = some_choice.find_id_using_screen(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                                # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
+
+                                            # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
+                                            # сразу выведет сообщение с фото, тогда мы стопаем цикл.
+                                            # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
+
+
+                                            # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
+                                            if some_choice.get_list_3_foto(result_id_fin) == False:
+                                                self.offset_vk += 1
+                                                print('следующий')
+                                            else:
+                                                self.sender(id,
+                                                            f'{result_find_girl["name"]}  {result_find_girl["last_name"]} \n'
+                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            self.menu_find_people_key_board())
+                                                user.mode = 'girl_find_run'
+                                                self.offset_vk += 1
+                                                while_true = False
+
+
 
 
 

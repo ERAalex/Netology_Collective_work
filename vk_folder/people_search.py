@@ -124,7 +124,7 @@ class vk_choice:
     def find_id_using_screen(self, screen_n):
         '''некоторые пользователи изменили свой id и поставили слова, это может вызвать ошибки, переделываем
         слово обратно в id пользователя (vk_id)'''
-        result = self.session_api.utils.resolveScreenName(screen_name=screen_n)
+        result = self.session_api_user.utils.resolveScreenName(screen_name=screen_n)
         result_obj_id = result['object_id']
         return result_obj_id
 
@@ -207,7 +207,11 @@ class vk_choice:
             else:
                 people_dict['music'] = ''
 
-            people_dict['photo'] = self.get_top_3_foto(id)
+            # через функцию ниже берем 3 лучших фото и кидаем в список.
+            try:
+                people_dict['photo'] = self.get_top_3_foto(id)
+            except:
+                people_dict['photo'] = ['аккаунт закрыт для выборки фото']
 
             return people_dict
 
@@ -295,26 +299,58 @@ class vk_choice:
         return all_photo_attachments
 
 
-    def send_info_in_bot(self):
+    def send_info_in_bot(self, id_user, id_related):
         '''
         функция, которая выводит в чат с ботом информацию о пользователе из функции поиска в нужном формате
         '''
-        profile_all_info_to_bd = self.get_all_available_people()
+        profile_all_info_to_bd = self.get_rel_people_by_id(id_related)
         name = profile_all_info_to_bd['name']
-        surname = profile_all_info_to_bd['lastname']
-        profile_id_int = self.session_api.users.get(user_ids=profile_all_info_to_bd['vk_id'])[0]['id']
+        surname = profile_all_info_to_bd['last_name']
+        profile_id_int = self.session_api_user.users.get(user_ids=profile_all_info_to_bd['vk_id'])[0]['id']
         profile_photos = self.session_api_user.photos.get(owner_id=profile_id_int, extended=1, album_id='profile')['items']
         most_liked = sorted(profile_photos, key=lambda likes: likes['likes']['count'], reverse=True)[:3]
         all_photo_attachments = []
         for el in most_liked:
             all_photo_attachments.append(f'photo{profile_id_int}_{el["id"]}')
-        send_info = self.session_api.messages.send(user_id=f'{vk_id}', random_id=randint(0, 1000), message=f'{name} {surname}\nhttps://vk.com/{profile_all_info_to_bd["vk_id"]}', attachment=f'{all_photo_attachments[0]},{all_photo_attachments[1]},{all_photo_attachments[2]}')
+        send_info = self.session_api.messages.send(user_id=f'{id_user}',
+                                                   random_id=randint(0, 1000),
+                                                   message=f'{name} {surname}\nhttps://vk.com/{profile_all_info_to_bd["vk_id"]}',
+                                                   attachment=f'{all_photo_attachments[0]},{all_photo_attachments[1]},{all_photo_attachments[2]}')
         return send_info
+
+
+    def get_list_3_foto(self, id_related):
+        '''
+        функция, которая выводит в чат с ботом информацию о пользователе из функции поиска в нужном формате
+        '''
+        profile_all_info_to_bd = self.get_rel_people_by_id(id_related)
+        profile_id_int = self.session_api_user.users.get(user_ids=profile_all_info_to_bd['vk_id'])[0]['id']
+        # ниже строчка выдает ошибку, ApiError: [30] This profile is private, обойдем try except
+        try:
+            profile_photos = self.session_api_user.photos.get(owner_id=profile_id_int,
+                                                              extended=1, album_id='profile')['items']
+            most_liked = sorted(profile_photos, key=lambda likes: likes['likes']['count'], reverse=True)[:3]
+            all_photo_attachments = []
+            for el in most_liked:
+                all_photo_attachments.append(f'photo{profile_id_int}_{el["id"]}')
+            # выведем в консоли для контроля почему отбросили
+            print(all_photo_attachments)
+            if len(all_photo_attachments) < 3:
+                return False
+            else:
+                return all_photo_attachments
+        except:
+            # если аккаунт закрыт, выдаем тоже False
+            return False
+
+
+
+
 
 
 
 # не удалять строчки внизу, используются
-some_choice = vk_choice(os.getenv('token_user'), os.getenv('token'))
+some_choice = vk_choice(os.getenv('token_user'), os.getenv('token_community'))
 user_need = User_vk(os.getenv('token_user'))
 
 #
@@ -328,3 +364,4 @@ user_need = User_vk(os.getenv('token_user'))
 # some_choice.get_top_3_foto(705169327)
 
 # print(some_choice.get_all_available_people(1))
+
