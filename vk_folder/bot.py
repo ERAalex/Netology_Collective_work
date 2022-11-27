@@ -288,19 +288,24 @@ class Bot:
                                         user.mode = 'girl_find_run'
 
 
-##################### застрял тут надо доработать
+
                                     if msg == 'добавить в контакты':
                                         result_id = self.param_persons['vk_id']
                                         # нам надо выкинуть id из id32334342
                                         result_id_split = result_id.replace('id', '')
+                                        # если id можно выразить числом, все хорошо, если id изменен как имя, то
+                                        # ищем реальный id человека
                                         try:
                                             result_id_fin = int(result_id_split)
                                         except:
-                                            result_id_fin = people_search.find_id_using_screen(result_id_split)
+                                            result_id_fin = some_choice.find_id_using_screen(result_id_split)
+                                            # там словарь приходит, достаем конкретно id
 
                                         data_people_selected = some_choice.get_rel_people_by_id(result_id_fin)
 
                                         print(data_people_selected)
+
+
 
                                         self.sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
                                                    'и вывода \n ', self.menu_find_people_key_board())

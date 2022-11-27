@@ -16,12 +16,6 @@ class User_vk:
 
 
 
-    def find_id_using_screen(self, screen_n):
-        '''некоторые пользователи изменили свой id и поставили слова, это может вызвать ошибки, переделываем
-        слово обратно в id пользователя (vk_id)'''
-        result = self.session_api.utils.resolveScreenName(screen_name=screen_n)
-        return result
-
 
     def get_user_info(self, vk_id):
         '''
@@ -120,10 +114,19 @@ class vk_choice:
 
     # получаем на вход название города, возвращаем его id
     def get_city_id(self, name_city):
+        '''на вход получаем название города, на выход даем его номер нужный для поиска по city = ...'''
         result = self.session_api_user.database.getCities(q=name_city, count=1)
+        id_city = ''
         for items in result['items']:
             id_city = items['id']
         return id_city
+
+    def find_id_using_screen(self, screen_n):
+        '''некоторые пользователи изменили свой id и поставили слова, это может вызвать ошибки, переделываем
+        слово обратно в id пользователя (vk_id)'''
+        result = self.session_api.utils.resolveScreenName(screen_name=screen_n)
+        result_obj_id = result['object_id']
+        return result_obj_id
 
 
 
@@ -135,11 +138,15 @@ class vk_choice:
 
         people_dict = {}
         # Список людей не в блэклисте, у которых есть фото,
-        for el in people['items']:
+
+        people_dict['vk_id'] = 'id' + str(id)
+
+        for el in people:
             if el['sex'] == 1:
                 people_dict['gender'] = 'ж'
             else:
                 people_dict['gender'] = 'м'
+
             if 'city' in el:
                 people_dict['city'] = el['city']['title']
             else:
@@ -151,7 +158,7 @@ class vk_choice:
 
             people_dict['name'] = el['first_name']
             people_dict['lastname'] = el['last_name']
-            people_dict['vk_id'] = el["domain"]
+
             if 'relation' in el:
                 people_dict['relationship'] = el['relation']
             else:
@@ -271,10 +278,12 @@ class vk_choice:
 some_choice = vk_choice(os.getenv('token_user'), os.getenv('token'))
 user_need = User_vk(os.getenv('token_user'))
 
+#
+# some_choice.find_id_using_screen('s.hussey')
 
-# print(some_choice.get_city_id())
+# some_choice.get_city_id('москва')
 # some_choice.send_info_in_bot()
 
-
+some_choice.get_rel_people_by_id(705169327)
 
 # print(some_choice.get_all_available_people(1))
