@@ -283,6 +283,7 @@ class Bot:
                                                 (1, self.param_persons['age_girl'],
                                                  self.param_persons['city_girl'], self.offset_vk)
 
+
                                             result_id = result_find_girl['vk_id']
                                             result_id_split = result_id.replace('id', '')
                                             # если id можно выразить числом, все хорошо, если id изменен как имя, то

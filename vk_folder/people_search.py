@@ -225,21 +225,20 @@ class vk_choice:
                                                            'sex, books, bdate, birth_year, activities, '
                                                            'interests, education, movies, games')
 
+
         people_dict = {}
+
         # Список людей не в блэклисте, у которых есть фото,
+
         for el in people['items']:
-            if 'city' in el and el['city']['title'] == city_name.title():
-                people_dict['city'] = el['city']['title']
-            else:
-                return False
-            if el['sex'] == 1:
-                people_dict['gender'] = 'ж'
-            else:
-                people_dict['gender'] = 'м'
             if 'city' in el:
                 people_dict['city'] = el['city']['title']
             else:
                 people_dict['city'] = ''
+            if el['sex'] == 1:
+                people_dict['gender'] = 'ж'
+            else:
+                people_dict['gender'] = 'м'
             if 'langs' in el:
                 people_dict['languages'] = el['personal']['langs']
             else:
@@ -252,7 +251,6 @@ class vk_choice:
                 people_dict['relationship'] = el['relation']
             else:
                 people_dict['relationship'] = 0
-
             # 1 — не женат / не замужем;
             # 2 — есть друг / есть подруга;
             # 3 — помолвлен / помолвлена;
@@ -283,7 +281,8 @@ class vk_choice:
                 people_dict['movies'] = el['movies']
             else:
                 people_dict['movies'] = ''
-            return people_dict
+        print(people_dict)
+        return people_dict
 
     # profile_all_info_to_bd = get_all_available_people()
 
