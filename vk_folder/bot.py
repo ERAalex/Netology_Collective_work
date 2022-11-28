@@ -234,9 +234,10 @@ class Bot:
 
 
                                     if msg == 'парня':
-                                        self.sender(id, 'Выводим парней, тут идет функция поиска (Парней) '
-                                                   'и вывода \n ', self.menu_find_people_key_board())
-                                        user.mode = 'boy_find'
+                                        self.sender(id, 'напишите возраст парня, например: 27',
+                                                    self.clear_key_board())
+                                        user.mode = 'boy_find_age'
+                                        break
 
 
 
@@ -383,6 +384,7 @@ class Bot:
 
 
 
+
                                     if msg == 'добавить в контакты':
                                         result_id = self.param_persons['vk_id']
                                         # если id можно выразить числом, все хорошо, если id изменен как имя, то
@@ -411,23 +413,175 @@ class Bot:
 
 
 
+                                ####### меню выбора с парнем
+                                if user.mode == 'boy_find_age':
+                                    # обрабатываем не корректный ввод пользователя + нам надо увериться, что это
+                                    # наше сообщение, оно должно быть числом
+                                    try:
+                                        decision = int(msg)
+                                        if decision:
+                                            boy_decision_age = msg
+                                            # мы создали словарь, куда будем пересоздавать данные людей
+                                            # для ввода в наш поиск, для аргументов.
+                                            self.param_persons['age_boy'] = int(boy_decision_age)
+                                            self.sender(id, 'напишите город в котором искать',
+                                                        self.clear_key_board())
+                                            user.mode = 'boy_find_city'
+                                            break
+                                    except:
+                                        self.sender(id, 'вы не ввели число, повторите ввод возраста парня',
+                                                    self.clear_key_board())
+                                        user.mode = 'boy_find_age'
 
 
-                                if user.mode == 'boy_find':
+
+                                # тут функция с выводом девушки
+                                if user.mode == 'boy_find_city':
+                                    if msg:
+                                        self.param_persons['city_boy'] = msg
+                                        # # теперь у нас есть два аргумента для функции поиска
+                                        # в словаре self.param_persons
+
+
+                                        # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
+                                        while_true = True
+                                        while while_true == True:
+                                            # парсим людей по критериям
+                                            result_find_boy = some_choice.get_all_available_people \
+                                                (2, self.param_persons['age_boy'],
+                                                 self.param_persons['city_boy'], self.offset_vk)
+
+
+                                            result_id = result_find_boy['vk_id']
+                                            result_id_split = result_id.replace('id', '')
+                                            # если id можно выразить числом, все хорошо, если id изменен как имя, то
+                                            # ищем реальный id человека:
+                                            try:
+                                                result_id_fin = int(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                            except:
+                                                result_id_fin = some_choice.find_id_using_screen(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                                # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
+
+
+                                            # проверка если человек в бане
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
+
+                                            if str(self.param_persons['vk_id']) in list_ban:
+                                                print('в бане')
+                                                # добавляем offset чтобы пропустить его и идем дальше по людям
+                                                self.offset_vk += 1
+                                            else:
+                                                # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
+                                                # сразу выведет сообщение с фото, тогда мы стопаем цикл.
+                                                # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
+                                                # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
+                                                if some_choice.get_list_3_foto(result_id_fin) == False:
+                                                    self.offset_vk += 1
+                                                    print('следующий')
+                                                else:
+                                                    self.sender(id,
+                                                                f'{result_find_boy["name"]}  {result_find_boy["last_name"]} \n'
+                                                                f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                                self.menu_find_people_key_board())
+                                                    user.mode = 'boy_find_run'
+                                                    self.offset_vk += 1
+                                                    while_true = False
+
+
+                                if user.mode == 'boy_find_run':
                                     if msg == 'следующий человек':
-                                        self.sender(id, 'Продолжаем вывод, тут идет функция поиска (Парней) '
-                                                   'и вывода \n ', self.menu_find_people_key_board())
-                                        user.mode = 'boy_find'
+
+                                        # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
+                                        while_true = True
+                                        while while_true == True:
+                                            # парсим людей по критериям
+                                            result_find_boy = some_choice.get_all_available_people \
+                                                (2, self.param_persons['age_boy'],
+                                                 self.param_persons['city_boy'], self.offset_vk)
+
+                                            result_id = result_find_boy['vk_id']
+                                            result_id_split = result_id.replace('id', '')
+                                            # если id можно выразить числом, все хорошо, если id изменен как имя, то
+                                            # ищем реальный id человека:
+                                            try:
+                                                result_id_fin = int(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                            except:
+                                                result_id_fin = some_choice.find_id_using_screen(result_id_split)
+                                                self.param_persons['vk_id'] = result_id_fin
+                                                # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
+
+
+                                            # проверка если человек в бане
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
+
+                                            if str(self.param_persons['vk_id']) in list_ban:
+                                                print('в бане')
+                                                # добавляем offset чтобы пропустить его и идем дальше по людям
+                                                self.offset_vk += 1
+                                            else:
+                                                # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
+                                                # сразу выведет сообщение с фото, тогда мы стопаем цикл.
+                                                # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
+                                                # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
+                                                if some_choice.get_list_3_foto(result_id_fin) == False:
+                                                    self.offset_vk += 1
+                                                    print('следующий')
+                                                else:
+                                                    self.sender(id,
+                                                                f'{result_find_boy["name"]}  {result_find_boy["last_name"]} \n'
+                                                                f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                                self.menu_find_people_key_board())
+                                                    user.mode = 'boy_find_run'
+                                                    self.offset_vk += 1
+                                                    while_true = False
+
+
+
+
+                                    # заносим в БАН в БД, по vk id (причем сохраняется там без приписки id - id232423)
+                                    if msg == 'больше не показывать':
+                                        #заносим в бан
+                                        run_db.add_banned(self.user_id_in_db, self.param_persons['vk_id'])
+
+                                        self.sender(id, 'Данный пользователь больше не будет появляться в рекомендациях'
+                                                        ' \n ', self.menu_find_people_key_board())
+                                        user.mode = 'boy_find_run'
+
+
+
 
                                     if msg == 'добавить в контакты':
+                                        result_id = self.param_persons['vk_id']
+                                        # если id можно выразить числом, все хорошо, если id изменен как имя, то
+                                        # ищем реальный id человека
+                                        try:
+                                            result_id_fin = int(result_id)
+                                        except:
+                                            result_id_fin = some_choice.find_id_using_screen(result_id)
+                                            # там словарь приходит, достаем конкретно id
+
+                                        data_people_selected = some_choice.get_rel_people_by_id(result_id_fin)
+                                        run_db.add_selected(data_people_selected)
+                                        print('человек добавлен')
+                                        # ищем id нашего релайтед в базе
+                                        info = run_db.search_selected_from_db('id' + str(result_id))
+                                        print(info)
+                                        run_db.mark_users_selected(self.user_id_in_db, info['id'])
+                                        print('связь между юзером и релайтед создана')
+
+
                                         self.sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '
                                                    'и вывода \n ', self.menu_find_people_key_board())
-                                        user.mode = 'boy_find'
+                                        user.mode = 'boy_find_run'
 
-                                # if user.mode == 'db_check':
-                                #     self.sender(id, 'Смотрим базу тест 2 \n ', self.menu_check_db_key_board())
-                                #     user.mode = 'db_check'
-                    #
+
+
+
+
+
 
 
 
