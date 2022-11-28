@@ -30,7 +30,7 @@ class vk_choice:
         people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
                                                     sex=gender, offset=offset_bot,
                                                     blacklisted_by_me=0, birth_year=(2022 - int(age)),
-                                                    has_photo=1, count=100, city_id=city,
+                                                    has_photo=1, count=30, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
                                                            'sex, books, bdate, birth_year, activities, '
                                                            'interests, education, movies, games')
@@ -39,8 +39,8 @@ class vk_choice:
         # Список людей не в блэклисте, у которых есть фото,
         for el in people['items']:
             try:
-                a = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
-                if len(a) >=3:
+                photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
+                if len(photos) >=3:
                     offset_bot += 1
                     if 'city' in el and el['city']['title'] == name_city.title():
                         people_dict = {}
@@ -58,7 +58,8 @@ class vk_choice:
 
                         people_dict['name'] = el['first_name']
                         people_dict['last_name'] = el['last_name']
-                        people_dict['vk_id'] = el["domain"]
+                        people_dict['vk_id'] = photos[0]['owner_id']
+                        # people_dict['vk_id'] = el["domain"]
                         if 'relation' in el:
                             people_dict['relationship'] = el['relation']
                         else:
@@ -113,4 +114,4 @@ class vk_choice:
         return filtred_people
 
 a = vk_choice(os.getenv('token_user'))
-pprint(a.get_all_available_people(1, 25, 'Орёл', 0))
+pprint(a.get_all_available_people(1, 30, 'Челябинск', 0))
