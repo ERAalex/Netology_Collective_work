@@ -268,9 +268,6 @@ class Bot:
                                 if user.mode == 'girl_find_city':
                                     if msg:
                                         self.param_persons['city_girl'] = msg
-                                        # конвертируем имя города в id
-                                        city_decis = some_choice.get_city_id(self.param_persons['city_girl'])
-                                        self.param_persons['city_girl'] = city_decis
                                         # # теперь у нас есть два аргумента для функции поиска
                                         # в словаре self.param_persons
 
@@ -388,21 +385,22 @@ class Bot:
 
                                     if msg == 'добавить в контакты':
                                         result_id = self.param_persons['vk_id']
-                                        # нам надо выкинуть id из id32334342
-                                        result_id_split = result_id.replace('id', '')
                                         # если id можно выразить числом, все хорошо, если id изменен как имя, то
                                         # ищем реальный id человека
                                         try:
-                                            result_id_fin = int(result_id_split)
+                                            result_id_fin = int(result_id)
                                         except:
-                                            result_id_fin = some_choice.find_id_using_screen(result_id_split)
+                                            result_id_fin = some_choice.find_id_using_screen(result_id)
                                             # там словарь приходит, достаем конкретно id
 
                                         data_people_selected = some_choice.get_rel_people_by_id(result_id_fin)
-
-                                        print(data_people_selected)
-
                                         run_db.add_selected(data_people_selected)
+                                        print('человек добавлен')
+                                        # ищем id нашего релайтед в базе
+                                        info = run_db.search_selected_from_db('id' + str(result_id))
+                                        print(info)
+                                        run_db.mark_users_selected(self.user_id_in_db, info['id'])
+                                        print('связь между юзером и релайтед создана')
 
 
                                         self.sender(id, 'Добавляем в контакты предыдущий вывод, тут идет функция БД '

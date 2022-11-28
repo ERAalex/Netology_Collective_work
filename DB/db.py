@@ -237,6 +237,7 @@ class DB:
         result = {}
         for column in query:
             result = {'name': column.name,
+                      'id': column.id,
                       'last_name': column.last_name,
                       'vk_id': column.vk_id,
                       'age': column.age,
