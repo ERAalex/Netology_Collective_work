@@ -228,7 +228,7 @@ class vk_choice:
         people_dict = {}
         # Список людей не в блэклисте, у которых есть фото,
         for el in people['items']:
-            if 'city' in el and el['city']['title'] == city_name.title():
+            if 'city' in el and el['city']['title'] == city.title():
                 people_dict['city'] = el['city']['title']
             else:
                 return False
