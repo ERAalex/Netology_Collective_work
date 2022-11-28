@@ -215,19 +215,23 @@ class vk_choice:
 
             return people_dict
 
-
-
-    def get_all_available_people(self, gender, age, city, offset_bot):
-        people = self.session_api_user.users.search(sort=0, blacklisted=0, offset=offset_bot, is_closed=False, sex=gender,
-                                                    blacklisted_by_me=0, birth_year=(2022-int(age)),
+    def get_all_available_people(self, gender, age, name_city, offset_bot):
+        city = vk_choice.get_city_id(self, name_city)
+        people = self.session_api_user.users.search(sort=0, blacklisted=0, offset=offset_bot, is_closed=False,
+                                                    sex=gender,
+                                                    blacklisted_by_me=0, birth_year=(2022 - int(age)),
                                                     has_photo=1, count=30, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
-                                                                          'sex, books, bdate, birth_year, activities, '
-                                                                          'interests, education, movies, games')
+                                                           'sex, books, bdate, birth_year, activities, '
+                                                           'interests, education, movies, games')
 
         people_dict = {}
         # Список людей не в блэклисте, у которых есть фото,
         for el in people['items']:
+            if 'city' in el and el['city']['title'] == city_name.title():
+                people_dict['city'] = el['city']['title']
+            else:
+                return False
             if el['sex'] == 1:
                 people_dict['gender'] = 'ж'
             else:

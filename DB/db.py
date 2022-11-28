@@ -9,7 +9,7 @@ from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSel
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': 'nazca007', # поставить свой пароль от postgres
+        'password': 'SN33Vf8m', # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
@@ -17,6 +17,7 @@ CONNECT = {
 
 
 class DB:
+
 
     def __init__(self, **conn_info):
         self.conn = None
@@ -43,9 +44,11 @@ class DB:
         self.cur.close()
         self.conn.close()
     
+
     def create_table(self):
         '''запуск создания всех таблиц'''
         create_tables(self.engine)
+
 
     def add_user(self, user_info: dict):
         '''добавление нового пользователя в БД'''
@@ -76,36 +79,39 @@ class DB:
 
 
     def add_selected(self, selected_info: dict):
-        '''добавление выбранного пользователя в БД'''
+        '''добавление пользователей в БД'''
         Session = sessionmaker(bind=self.engine)
         db_session = Session()
-        add_query = Selected(name=selected_info['name'],
-                             last_name=selected_info['last_name'],
-                             vk_id=selected_info['vk_id'],
-                             age=selected_info['age'], 
-                             relations=selected_info['relations'],
-                             b_day=selected_info['b_day'],
-                             city=selected_info['city'],
-                             language=selected_info['language'],
-                             activities=selected_info['activities'],
-                             interests=selected_info['interests'],
-                             movies=selected_info['movies'],
-                             books=selected_info['books'],
-                             games=selected_info['games'],
-                             music=selected_info['music'],
-                             gender=selected_info['gender']
-                             )
-        db_session.add(add_query)
-        # получение id только что внесенной записи выбранного пользователя
-        db_session.flush()
-        id_query = add_query.id
-        # добавление фотографий выбранного пользователя в таблицу Photos
-        selected_photos = []
-        for photo in selected_info['photo']:
-            selected_photos.append(Photos(photo_id=photo, id_selected=id_query))
-        db_session.add_all(selected_photos)
-        db_session.commit()
-        db_session.close()
+        chek_query = db_session.query(Selected).filter(Selected.vk_id == selected_info['vk_id']).all()
+        if not chek_query:
+            add_query = Selected(name=selected_info['name'],
+                                last_name=selected_info['last_name'],
+                                vk_id=selected_info['vk_id'],
+                                age=selected_info['age'], 
+                                relations=selected_info['relations'],
+                                b_day=selected_info['b_day'],
+                                city=selected_info['city'],
+                                language=selected_info['language'],
+                                activities=selected_info['activities'],
+                                interests=selected_info['interests'],
+                                movies=selected_info['movies'],
+                                books=selected_info['books'],
+                                games=selected_info['games'],
+                                music=selected_info['music'],
+                                gender=selected_info['gender']
+                                )
+            db_session.add(add_query)
+            # получение id только что внесенной записи выбранного пользователя
+            db_session.flush()
+            id_query = add_query.id
+            # добавление фотографий выбранного пользователя в таблицу Photos
+            selected_photos = []
+            for photo in selected_info['photo']:
+                selected_photos.append(Photos(photo_id=photo, id_selected=id_query))
+            db_session.add_all(selected_photos)
+            db_session.commit()
+            db_session.close()
+
 
     def mark_users_selected(self, user_id, selected_id):
         '''добавление связи пользователя с его выбранным пользоваетелем'''
@@ -137,6 +143,7 @@ class DB:
         db_session.add(add_query)
         db_session.commit()
         db_session.close()
+
 
 
     def get_all_vk_id_of_banned(self, user_id):
@@ -221,8 +228,6 @@ class DB:
         return result
 
 
-
-
     def search_selected_from_db(self, selected_vk_id):
         '''получения словаря с информацией о выбранном пользователе из БД'''
         Session = sessionmaker(bind=self.engine)
@@ -261,26 +266,26 @@ test_user = {
     'language': 'English',
     'activities': 'noone',
     'interests': 'nouse',
-    'movies': 'psy',
-    'books': 'Martin Eden',
+    'movies': 'psy, Побег из Шоушенка, Тьма, Счастливое число слевина, Детонатор',
+    'books': 'Martin Eden, Шантарам, 1984, Имя розы',
     'games': 'The Witcher 3',
     'music': 'melodic',
     'gender': 'male',
 }
 
 test_selected = {
-    'name': 'Sergey',
-    'last_name': 'Niceone',
-    'vk_id': 'id459484548495',
-    'age': 33,
+    'name': 'Koper',
+    'last_name': 'Field',
+    'vk_id': 'id45655495',
+    'age': 31,
     'relations': 'married',
-    'b_day': '09.09.1989',
+    'b_day': '09.10.1989',
     'city': 'Moscow',
     'language': 'English',
     'activities': 'noone',
     'interests': 'nouse',
-    'movies': 'psy',
-    'books': 'Martin Eden',
+    'movies': 'psy, Области тьмы, Счастливое число Слевина',
+    'books': '1984, Убить пересмешника, pihkal, Антлант расправил плечи',
     'games': 'The Witcher 3',
     'music': 'melodic',
     'gender': 'male',
@@ -293,13 +298,12 @@ run_db = DB(**CONNECT)
 
 # print(run_db.get_all_vk_id_of_banned(12))
 
-
 # test = run_db.create_database()
 # create = run_db.create_table()
 #
-# test2 = run_db.add_user(test_user)
+test2 = run_db.add_user(test_user)
 #
-# test3 = run_db.add_selected(test_selected)
+test3 = run_db.add_selected(test_selected)
 
 # run_db.mark_users_selected(12, 2)
 
