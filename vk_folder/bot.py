@@ -57,6 +57,7 @@ class Bot:
         self.offset_vk = 0
         self.id_user_bot = ''
         self.while_true = True
+        self.user_id_in_db = 0
 
 
     def sender(self, id, text, key):
@@ -124,6 +125,12 @@ class Bot:
 
                     data = people_search.get_user_info(id)
                     user_db.add_user(data)
+
+                    # Достаем и сохраняем id в БД текущего пользователя
+                    user_find_from_db = run_db.search_user_from_db('id' + str(id))
+                    self.user_id_in_db = user_find_from_db['id']
+
+
 
                     msg = event.text.lower()
 
@@ -289,24 +296,29 @@ class Bot:
                                                 # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
 
 
+                                            # проверка если человек в бане
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
 
-                                            # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
-                                            # сразу выведет сообщение с фото, тогда мы стопаем цикл.
-                                            # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
-
-
-                                            # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
-                                            if some_choice.get_list_3_foto(result_id_fin) == False:
+                                            if str(self.param_persons['vk_id']) in list_ban:
+                                                print('в бане')
+                                                # добавляем offset чтобы пропустить его и идем дальше по людям
                                                 self.offset_vk += 1
-                                                print('следующий')
                                             else:
-                                                self.sender(id,
-                                                            f'{result_find_girl["name"]}  {result_find_girl["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
-                                                            self.menu_find_people_key_board())
-                                                user.mode = 'girl_find_run'
-                                                self.offset_vk += 1
-                                                while_true = False
+                                                # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
+                                                # сразу выведет сообщение с фото, тогда мы стопаем цикл.
+                                                # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
+                                                # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
+                                                if some_choice.get_list_3_foto(result_id_fin) == False:
+                                                    self.offset_vk += 1
+                                                    print('следующий')
+                                                else:
+                                                    self.sender(id,
+                                                                f'{result_find_girl["name"]}  {result_find_girl["last_name"]} \n'
+                                                                f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                                self.menu_find_people_key_board())
+                                                    user.mode = 'girl_find_run'
+                                                    self.offset_vk += 1
+                                                    while_true = False
 
 
 
@@ -334,27 +346,38 @@ class Bot:
                                                 self.param_persons['vk_id'] = result_id_fin
                                                 # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
 
-                                            # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
-                                            # сразу выведет сообщение с фото, тогда мы стопаем цикл.
-                                            # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
 
+                                            # проверка если человек в бане
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
 
-                                            # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
-                                            if some_choice.get_list_3_foto(result_id_fin) == False:
+                                            if str(self.param_persons['vk_id']) in list_ban:
+                                                print('в бане')
+                                                # добавляем offset чтобы пропустить его и идем дальше по людям
                                                 self.offset_vk += 1
-                                                print('следующий')
                                             else:
-                                                self.sender(id,
-                                                            f'{result_find_girl["name"]}  {result_find_girl["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
-                                                            self.menu_find_people_key_board())
-                                                user.mode = 'girl_find_run'
-                                                self.offset_vk += 1
-                                                while_true = False
+                                                # если ниже условие нормальное (больше 3 фото и не забл аккаунт), то
+                                                # сразу выведет сообщение с фото, тогда мы стопаем цикл.
+                                                # если нет, то пишем себе для контроля следующий и идем дальше по циклу.
+                                                # if some_choice.send_info_in_bot(self.id_user_bot, result_id_fin):
+                                                if some_choice.get_list_3_foto(result_id_fin) == False:
+                                                    self.offset_vk += 1
+                                                    print('следующий')
+                                                else:
+                                                    self.sender(id,
+                                                                f'{result_find_girl["name"]}  {result_find_girl["last_name"]} \n'
+                                                                f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                                self.menu_find_people_key_board())
+                                                    user.mode = 'girl_find_run'
+                                                    self.offset_vk += 1
+                                                    while_true = False
 
 
-    ############ начал работать над этой логикой
+
+
+                                    # заносим в БАН в БД, по vk id (причем сохраняется там без приписки id - id232423)
                                     if msg == 'больше не показывать':
+                                        #заносим в бан
+                                        run_db.add_banned(self.user_id_in_db, self.param_persons['vk_id'])
 
                                         self.sender(id, 'Данный пользователь больше не будет появляться в рекомендациях'
                                                         ' \n ', self.menu_find_people_key_board())
