@@ -1,4 +1,4 @@
-from DB.db import DB, run_db 
+from db import run_db 
 from fuzzywuzzy import fuzz
 
 test_user_info = run_db.search_user_from_db('id459484548495')
@@ -22,5 +22,6 @@ print(get_coincidences_by_movies(test_user_info['movies'], test_selected_info['m
 print()
 print(get_coincidences_by_music(test_user_info['music'], test_selected_info['music']))
 print()
-print(get_coincidences_by_books(test_user_info['books'], test_user_info['books']))
+print(get_coincidences_by_books(test_user_info['books'], test_selected_info['books']))
 print()
+

@@ -7,7 +7,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 import json
 import os
 from vk_folder.some_frases import iniciate_messages
-from DB.db import DB, CONNECT
+from DB.database import DB, CONNECT
 from DB.models import Users
 from vk_folder.people_search import vk_token_user, get_user_info
 from sqlalchemy import select, insert

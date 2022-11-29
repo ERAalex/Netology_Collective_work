@@ -126,9 +126,9 @@ class DB:
     def find_using_users_selected(self, user_id):
         '''у нас есть id пользователя бота, надо найти по нему всех релайтед людей из UsersSelected'''
         Session = sessionmaker(bind=self.engine)
-        session = Session()
-        query = session.query(UsersSelected).filter(UsersSelected.id_user == user_id).all()
-        session.close()
+        db_session = Session()
+        query = db_session.query(UsersSelected).filter(UsersSelected.id_user == user_id).all()
+        db_session.close()
         result = []
         for item in query:
             result.append(item.id_selected)
@@ -149,14 +149,26 @@ class DB:
     def get_all_vk_id_of_banned(self, user_id):
         '''вывести список всех забаненных пользователей, чтобы потом проверять по ним и не выводить'''
         Session = sessionmaker(bind=self.engine)
-        session = Session()
-        query = session.query(Banned).filter(Banned.id_user == user_id).all()
-        session.close()
+        db_session = Session()
+        query = db_session.query(Banned).filter(Banned.id_user == user_id).all()
+        db_session.close()
         result = []
         for item in query:
             result.append(item.banned_vk_id)
         return result
 
+
+
+    def get_id_deleted_selected(self, user_id):
+        '''получить айди удаленной анкеты, чтобы не показывать её пользователю '''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(DeletedSelected).filter(DeletedSelected.id_user == user_id).all()
+        db_session.close()
+        result = []
+        for item in query:
+            result.append(item.id_selected)
+        return result
 
 
     def mark_deleted_from_selected(self, user_id, selected_id):
@@ -209,7 +221,8 @@ class DB:
         session.close()
         result = {}
         for column in query:
-            result = {'name': column.name,
+            result = {'id': column.id,
+                      'name': column.name,
                       'last_name': column.last_name,
                       'vk_id': column.vk_id,
                       'age': column.age,
@@ -275,9 +288,9 @@ test_user = {
 }
 
 test_selected = {
-    'name': 'Koper',
-    'last_name': 'Field',
-    'vk_id': 'id45655495',
+    'name': 'Poper',
+    'last_name': 'Qield',
+    'vk_id': 'id42352355',
     'age': 31,
     'relations': 'married',
     'b_day': '09.10.1989',
@@ -285,7 +298,7 @@ test_selected = {
     'language': 'English',
     'activities': 'noone',
     'interests': 'nouse',
-    'movies': 'psy, Области тьмы, Счастливое число Слевина',
+    'movies': 'Области тьмы',
     'books': '1984, Убить пересмешника, pihkal, Антлант расправил плечи',
     'games': 'The Witcher 3',
     'music': 'melodic',
@@ -302,7 +315,7 @@ run_db = DB(**CONNECT)
 # test = run_db.create_database()
 # create = run_db.create_table()
 #
-test2 = run_db.add_user(test_user)
+# test2 = run_db.add_user(test_user)
 #
 test3 = run_db.add_selected(test_selected)
 

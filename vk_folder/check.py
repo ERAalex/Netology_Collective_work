@@ -112,8 +112,6 @@ class vk_choice:
                 pass
         return filtred_people
 
-
-
-a = vk_choice(os.getenv('token_user'))
-
-pprint(a.get_all_available_people(1, 30, 'Челябинск', 100))
+# a = vk_choice(os.getenv('token_user'))
+#
+# pprint(a.get_all_available_people(1, 30, 'Челябинск', 100))
