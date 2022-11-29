@@ -25,12 +25,13 @@ class vk_choice:
                 id_city = items['id']
             return id_city
 
-    def get_all_available_people(self, gender, age, name_city, offset_bot):
+    def get_all_available_people(self, gender, age, name_city, total_and_offset: int):
+        '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
         city = vk_choice.get_city_id(self, name_city)
         people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
-                                                    sex=gender, offset=offset_bot,
+                                                    sex=gender, offset=total_and_offset,
                                                     blacklisted_by_me=0, birth_year=(2022 - int(age)),
-                                                    has_photo=1, count=30, city_id=city,
+                                                    has_photo=1, count=total_and_offset, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
                                                            'sex, books, bdate, birth_year, activities, '
                                                            'interests, education, movies, games')
@@ -41,10 +42,9 @@ class vk_choice:
             try:
                 photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
                 if len(photos) >=3:
-                    offset_bot += 1
                     if 'city' in el and el['city']['title'] == name_city.title():
                         people_dict = {}
-                        filtred_people.append([people_dict])
+                        filtred_people.append(people_dict)
                         people_dict['city'] = el['city']['title']
 
                         if el['sex'] == 1:
@@ -110,8 +110,10 @@ class vk_choice:
                 # i+=1
                 # print('закрыт профиль', i)
                 pass
-
         return filtred_people
 
+
+
 a = vk_choice(os.getenv('token_user'))
-pprint(a.get_all_available_people(1, 30, 'Челябинск', 0))
+
+pprint(a.get_all_available_people(1, 30, 'Челябинск', 100))
