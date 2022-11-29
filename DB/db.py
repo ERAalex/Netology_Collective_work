@@ -9,7 +9,7 @@ from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSel
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': '----', # поставить свой пароль от postgres
+        'password': 'SN33Vf8m', # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
@@ -126,9 +126,9 @@ class DB:
     def find_using_users_selected(self, user_id):
         '''у нас есть id пользователя бота, надо найти по нему всех релайтед людей из UsersSelected'''
         Session = sessionmaker(bind=self.engine)
-        session = Session()
-        query = session.query(UsersSelected).filter(UsersSelected.id_user == user_id).all()
-        session.close()
+        db_session = Session()
+        query = db_session.query(UsersSelected).filter(UsersSelected.id_user == user_id).all()
+        db_session.close()
         result = []
         for item in query:
             result.append(item.id_selected)
@@ -139,11 +139,37 @@ class DB:
         '''добавление в бан лист'''
         Session = sessionmaker(bind=self.engine)
         db_session = Session()
-        add_query = Banned(self, id_user=user_id, banned_vk_id=selected_vk_id)
+        add_query = Banned(id_user=user_id, banned_vk_id=selected_vk_id)
         db_session.add(add_query)
         db_session.commit()
         db_session.close()
-    
+
+
+
+    def get_all_vk_id_of_banned(self, user_id):
+        '''вывести список всех забаненных пользователей, чтобы потом проверять по ним и не выводить'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(Banned).filter(Banned.id_user == user_id).all()
+        db_session.close()
+        result = []
+        for item in query:
+            result.append(item.banned_vk_id)
+        return result
+
+
+
+    def get_id_deleted_selected(self, user_id):
+        '''получить айди удаленной анкеты, чтобы не показывать её пользователю '''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(DeletedSelected).filter(DeletedSelected.id_user == user_id).all()
+        db_session.close()
+        result = []
+        for item in query:
+            result.append(item.id_selected)
+        return result
+
 
     def mark_deleted_from_selected(self, user_id, selected_id):
         '''отметка пользователя удаленным из БД (не показывать потзователю аккаунты в флагом deleted)'''
@@ -195,7 +221,8 @@ class DB:
         session.close()
         result = {}
         for column in query:
-            result = {'name': column.name,
+            result = {'id': column.id,
+                      'name': column.name,
                       'last_name': column.last_name,
                       'vk_id': column.vk_id,
                       'age': column.age,
@@ -223,6 +250,7 @@ class DB:
         result = {}
         for column in query:
             result = {'name': column.name,
+                      'id': column.id,
                       'last_name': column.last_name,
                       'vk_id': column.vk_id,
                       'age': column.age,
@@ -282,6 +310,7 @@ test_selected = {
 # не трогать ниже строчку, я ею пользуюсь в bot
 run_db = DB(**CONNECT)
 
+# print(run_db.get_all_vk_id_of_banned(12))
 
 # test = run_db.create_database()
 # create = run_db.create_table()
