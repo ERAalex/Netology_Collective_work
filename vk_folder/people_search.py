@@ -219,6 +219,8 @@ class vk_choice:
         city = vk_choice.get_city_id(self, name_city)
         people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
                                                     sex=gender, offset=offset_bot,
+        people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
+                                                    sex=gender, offset=offset_bot,
                                                     blacklisted_by_me=0, birth_year=(2022 - int(age)),
                                                     has_photo=1, count=1, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
@@ -245,24 +247,26 @@ class vk_choice:
                         else:
                             people_dict['languages'] = ''
 
-                        people_dict['name'] = el['first_name']
-                        people_dict['last_name'] = el['last_name']
-                        people_dict['vk_id'] = photos[0]['owner_id']
+                                    people_dict['name'] = el['first_name']
+                                    people_dict['last_name'] = el['last_name']
+                                    people_dict['vk_id'] = photos[0]['owner_id']
+                        # people_dict['vk_id'] = photos[0]['owner_id']
                         # people_dict['vk_id'] = el["domain"]
-                        if 'relation' in el:
-                            people_dict['relationship'] = el['relation']
-                        else:
-                            people_dict['relationship'] = 0
+                                    if 'relation' in el:
+                                        people_dict['relationship'] = el['relation']
+                                    else:
+                                        people_dict['relationship'] = 0
 
+            
                         # 1 — не женат / не замужем;
-                        # 2 — есть друг / есть подруга;
-                        # 3 — помолвлен / помолвлена;
-                        # 4 — женат / замужем;
-                        # 5 — всё сложно;
-                        # 6 — в активном поиске;
-                        # 7 — влюблён / влюблена;
-                        # 8 — в гражданском браке;
-                        # 0 — не указано.
+                                    # 2 — есть друг / есть подруга;
+                                    # 3 — помолвлен / помолвлена;
+                                    # 4 — женат / замужем;
+                                    # 5 — всё сложно;
+                                    # 6 — в активном поиске;
+                                    # 7 — влюблён / влюблена;
+                                    # 8 — в гражданском браке;
+                                    # 0 — не указано.
 
                         if 'bdate' in el:
                             people_dict['b_day'] = el['bdate']
