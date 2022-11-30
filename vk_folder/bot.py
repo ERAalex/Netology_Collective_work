@@ -4,17 +4,12 @@ from vk_api.utils import get_random_id
 from vk_api.longpoll import VkLongPoll, VkEventType
 import json
 from vk_folder.some_frases import iniciate_messages
-from db_mongo import find_document, series_collection, insert_document
+# from db_mongo import find_document, series_collection, insert_document
 import os
 
-from DB.db import DB, CONNECT, run_db
-from DB.models import Users
+from DB.db import run_db
 
 from vk_folder.people_search import User_vk, some_choice
-
-
-
-
 
 token_user = os.getenv('token_user')
 vk_token = os.getenv('token')
@@ -32,8 +27,6 @@ class User:
         self.mode = mode
         self.name = ''
         self.age = -1
-
-
 
 
 class Bot:
@@ -54,17 +47,14 @@ class Bot:
         self.param_persons = {}
         # offset выводит в вк следующего человека в списке из полученных. т.е. 0 - самый первый в списке, потом
         # 2,3 и т.д., будем увеличивать при пролистывании людей, чтобы не показывать 1 и тех же
-        self.count_in_person_list = 0
-        self.list_of_search_persons = []
+        self.offset_vk = 0
         self.id_user_bot = ''
         self.while_true = True
         self.user_id_in_db = 0
-
-
+        self.count_in_person_list = 0
 
     def sender(self, id, text, key):
         self.vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': key})
-
 
     def _get_keyboard(self, buts):
         nb = []
@@ -89,14 +79,14 @@ class Bot:
         first_keyboard = str(first_keyboard.decode('utf-8'))
         return first_keyboard
 
-
     def clear_key_board(self):
         clear_key = self._get_keyboard([])
         return clear_key
 
     def menu_find_people_key_board(self):
         menu_find_people = self._get_keyboard([
-            [('Добавить в контакты', 'синий')], [('Следующий человек', 'зеленый')], [('Больше не показывать','красный')]
+            [('Добавить в контакты', 'синий')], [('Следующий человек', 'зеленый')],
+            [('Больше не показывать', 'красный')]
         ])
         return menu_find_people
 
@@ -112,8 +102,7 @@ class Bot:
         ])
         return menu_check_db
 
-
-#cамая главная часть, работа бота
+    # cамая главная часть, работа бота
     def start_run(self):
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW:
@@ -123,23 +112,17 @@ class Bot:
                     self.id_user_bot = id
 
                     # проверяем есть ли такой пользователь в базе
-                    user_db = DB(**CONNECT)
-
                     data = people_search.get_user_info(id)
-                    user_db.add_user(data)
+                    run_db.add_user(data)
 
                     # Достаем и сохраняем id в БД текущего пользователя
                     user_find_from_db = run_db.search_user_from_db('id' + str(id))
                     self.user_id_in_db = user_find_from_db['id']
 
-
-
                     msg = event.text.lower()
 
                     if msg in iniciate_messages:
-
                         self.sender(id, 'hello', self.clear_key_board())
-
 
                     if msg == 'start':
                         flag = 0
@@ -153,12 +136,12 @@ class Bot:
                             if flag == 0:
                                 self.users.append(User(id, 'start'))
                                 self.sender(id, 'Что будем делать? Наберите цифру: \n'
-                                           '1- Посмотреть добавленные контакты \n'
-                                           '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
-                                           '3- Общий поиск людей(указать пол, возраст, город) \n'
-                                           '\n'
-                                           '\n'
-                                           ' ', self.clear_key_board())
+                                                '1- Посмотреть добавленные контакты \n'
+                                                '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                                '3- Общий поиск людей(указать пол, возраст, город) \n'
+                                                '\n'
+                                                '\n'
+                                                ' ', self.clear_key_board())
 
                     else:
                         for user in self.users:
@@ -167,39 +150,40 @@ class Bot:
                                 ##  Логика на Старт меню
                                 if user.mode == 'start':
                                     if str(msg) == '1':
-                                        self.sender(id, 'Ваши контакты: Функция, выводим людей из БД \n ',
-                                               self.menu_check_db_key_board())
+                                        self.sender(id, 'Ваши контакты: Нажмите "Следующий" \n ',
+                                                    self.menu_check_db_key_board())
                                         user.mode = 'db_check'
-                                        break
 
                                     if str(msg) == '3':
                                         self.sender(id, 'Для общего поиска людей выберите кого ищем \n ',
-                                               self.menu_sex_key_board())
+                                                    self.menu_sex_key_board())
                                         user.mode = 'menu_sex'
-
-
 
 
                                 ##  Логика на 1 пункт
                                 elif user.mode == 'db_check':
                                     # достаем id нашего юзера из базы данных
-                                    data_us_bd = user_db.search_user_from_db('id'+str(id))
+                                    data_us_bd = run_db.search_user_from_db('id' + str(id))
                                     # по нему ищем релайтед людей, и получаем список с id этих людей
-                                    all_related = user_db.find_using_users_selected(data_us_bd['id'])
+                                    all_related = run_db.find_using_users_selected(data_us_bd['id'])
                                     # пробегаемся по списку, и ищем через функцию данные по id
                                     list_related = []
                                     for item in all_related:
-                                        result_realted = user_db.search_selected_from_db_using_id(item)
-                                        list_related.append(result_realted['name'] + ' ' + result_realted['last_name'])
-
-
-
+                                        result_realted = run_db.search_selected_from_db_using_id(item)
+                                        # получаем айди пользователя из БД
+                                        related_db_id = result_realted['id']
+                                        # проверка на не вхождение в список удаленных пользователем
+                                        check_deleted = run_db.get_id_deleted_selected(self.user_id_in_db)
+                                        if related_db_id not in check_deleted:
+                                            list_related.append(f'''{result_realted["name"]}  
+                                                                    {result_realted["last_name"]}
+                                                                    https://vk.com/{result_realted["vk_id"]}''')
 
                                     if msg == 'следующий контакт':
                                         # так как у нас список с людьми, при каждом нажатии кнопки count +1, т.е.
                                         # выводим следующего в списке.
                                         try:
-                                            self.sender(id, f'В {list_related[self.count]} \n ',
+                                            self.sender(id, f'{list_related[self.count]} \n ',
                                                         self.menu_check_db_key_board())
                                             user.mode = 'db_check'
                                             self.count += 1
@@ -210,17 +194,21 @@ class Bot:
                                             user.mode = ''
                                             self.count = 0
 
-
                                     if msg == 'удалить контакт':
                                         self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
-                                               self.menu_check_db_key_board())
+                                                    self.menu_check_db_key_board())
+                                        # помечаем пользователя удаленным
+                                        run_db.mark_deleted_from_selected(self.user_id_in_db, related_db_id)
                                         user.mode = 'db_check'
 
                                     if msg == 'искать людей':
                                         self.sender(id, 'Переходим на поиск людей, Для общего поиска людей выберите '
                                                         'кого ищем \n ',
-                                               self.menu_sex_key_board())
+                                                    self.menu_sex_key_board())
                                         user.mode = 'menu_sex'
+
+
+
 
 
 
