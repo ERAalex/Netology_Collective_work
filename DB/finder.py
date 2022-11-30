@@ -6,15 +6,15 @@ test_selected_info = run_db.search_selected_from_db('id45655495')
 
 
 def get_coincidences_by_movies(user_movies, selected_movies):
-    ratio = fuzz.partial_ratio(user_movies, selected_movies)
+    ratio = fuzz.token_sort_ratio(user_movies, selected_movies)
     return ratio
 
 def get_coincidences_by_music(user_music, selected_music):
-    ratio = fuzz.partial_ratio(user_music, selected_music)
+    ratio = fuzz.token_sort_ratio(user_music, selected_music)
     return ratio
 
 def get_coincidences_by_books(user_books, selected_books):
-    ratio = fuzz.partial_ratio(user_books, selected_books)
+    ratio = fuzz.token_sort_ratio(user_books, selected_books)
     return ratio
 
 
