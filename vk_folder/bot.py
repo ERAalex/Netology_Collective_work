@@ -153,11 +153,13 @@ class Bot:
                                         self.sender(id, 'Ваши контакты: Нажмите "Следующий" \n ',
                                                     self.menu_check_db_key_board())
                                         user.mode = 'db_check'
+                                        break
 
                                     if str(msg) == '3':
                                         self.sender(id, 'Для общего поиска людей выберите кого ищем \n ',
                                                     self.menu_sex_key_board())
                                         user.mode = 'menu_sex'
+
 
 
                                 ##  Логика на 1 пункт
@@ -179,6 +181,10 @@ class Bot:
                                                                     {result_realted["last_name"]}
                                                                     https://vk.com/{result_realted["vk_id"]}''')
 
+
+
+
+
                                     if msg == 'следующий контакт':
                                         # так как у нас список с людьми, при каждом нажатии кнопки count +1, т.е.
                                         # выводим следующего в списке.
@@ -194,6 +200,8 @@ class Bot:
                                             user.mode = ''
                                             self.count = 0
 
+
+
                                     if msg == 'удалить контакт':
                                         self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
                                                     self.menu_check_db_key_board())
@@ -201,11 +209,16 @@ class Bot:
                                         run_db.mark_deleted_from_selected(self.user_id_in_db, related_db_id)
                                         user.mode = 'db_check'
 
+
+
                                     if msg == 'искать людей':
                                         self.sender(id, 'Переходим на поиск людей, Для общего поиска людей выберите '
                                                         'кого ищем \n ',
                                                     self.menu_sex_key_board())
                                         user.mode = 'menu_sex'
+
+
+
 
 
 

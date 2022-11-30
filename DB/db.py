@@ -9,7 +9,7 @@ from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSel
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': 'SN33Vf8m', # поставить свой пароль от postgres
+        'password': 'nazca007', # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
@@ -317,7 +317,7 @@ run_db = DB(**CONNECT)
 #
 # test2 = run_db.add_user(test_user)
 #
-test3 = run_db.add_selected(test_selected)
+# test3 = run_db.add_selected(test_selected)
 
 # run_db.mark_users_selected(12, 2)
 

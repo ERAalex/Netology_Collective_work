@@ -110,6 +110,7 @@ class vk_choice:
         self.vk_u = vk_api.VkApi(token=vk_token_user)
         self.session_api_user = self.vk_u.get_api()
         self.session_api = self.vk_s.get_api()
+        self.count = 0
 
 
     # получаем на вход название города, возвращаем его id
