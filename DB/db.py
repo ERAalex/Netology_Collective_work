@@ -2,6 +2,7 @@ import sqlalchemy
 from psycopg2 import extras, connect
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from pprint import pprint
 
 from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables
 

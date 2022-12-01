@@ -6,6 +6,7 @@ import json
 from vk_folder.some_frases import iniciate_messages
 # from db_mongo import find_document, series_collection, insert_document
 import os
+from pprint import pprint
 
 from DB.db import run_db
 
@@ -27,6 +28,8 @@ class User:
         self.mode = mode
         self.name = ''
         self.age = -1
+        self.related_finded = {}
+
 
 
 class Bot:
@@ -49,9 +52,11 @@ class Bot:
         # 2,3 и т.д., будем увеличивать при пролистывании людей, чтобы не показывать 1 и тех же
         self.offset_vk = 0
         self.id_user_bot = ''
+        self.id_user = ''
         self.while_true = True
         self.user_id_in_db = 0
         self.count_in_person_list = 0
+        self.users_class = []
 
     def sender(self, id, text, key):
         self.vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': key})
@@ -102,6 +107,9 @@ class Bot:
         ])
         return menu_check_db
 
+
+
+
     # cамая главная часть, работа бота
     def start_run(self):
         for event in self.longpoll.listen():
@@ -109,10 +117,30 @@ class Bot:
                 if event.to_me:
 
                     id = event.user_id
-                    self.id_user_bot = id
+                    self.id_user = id
+
+
+
+
+                    # если у нас нет объекта класса Юзер (по vk_id) то добавляем
+                    if id not in self.users_class:
+                        # создаем объект класса Юзер
+                        self.id_user_bot = User(id, '')
+                        self.users_class.append(self.id_user_bot)
+                    else:
+                        pass
+
+                    for item in self.users_class:
+                        print('__________')
+                        print(item.id)
+                        print('__________')
+
+
+
 
                     # проверяем есть ли такой пользователь в базе
                     data = people_search.get_user_info(id)
+
                     run_db.add_user(data)
 
                     # Достаем и сохраняем id в БД текущего пользователя
@@ -317,7 +345,7 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'girl_find_run'
                                                 while_true = False
@@ -354,7 +382,7 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'girl_find_run'
                                                 while_true = False
@@ -466,7 +494,7 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'boy_find_run'
                                                 while_true = False
@@ -504,7 +532,7 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'boy_find_run'
                                                 while_true = False
