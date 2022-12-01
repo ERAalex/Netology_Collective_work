@@ -3,13 +3,13 @@ from psycopg2 import extras, connect
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables
+from models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables
 
 
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': 'nazca007', # поставить свой пароль от postgres
+        'password': 'SN33Vf8m', # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
@@ -268,44 +268,6 @@ class DB:
                       }
         return result
         
-
-test_user = {
-    'name': 'Sergey',
-    'last_name': 'Niceone',
-    'vk_id': 'id459484548495',
-    'age': 33,
-    'relations': 'married',
-    'b_day': '09.09.1989',
-    'city': 'Moscow',
-    'language': 'English',
-    'activities': 'noone',
-    'interests': 'nouse',
-    'movies': 'psy, Побег из Шоушенка, Тьма, Счастливое число слевина, Детонатор',
-    'books': 'Martin Eden, Шантарам, 1984, Имя розы',
-    'games': 'The Witcher 3',
-    'music': 'melodic',
-    'gender': 'male',
-}
-
-test_selected = {
-    'name': 'Poper',
-    'last_name': 'Qield',
-    'vk_id': 'id42352355',
-    'age': 31,
-    'relations': 'married',
-    'b_day': '09.10.1989',
-    'city': 'Moscow',
-    'language': 'English',
-    'activities': 'noone',
-    'interests': 'nouse',
-    'movies': 'Области тьмы',
-    'books': '1984, Убить пересмешника, pihkal, Антлант расправил плечи',
-    'games': 'The Witcher 3',
-    'music': 'melodic',
-    'gender': 'male',
-    'photo': ['6465465165', '65465161651', '65465151651']
-}
-
 
 # не трогать ниже строчку, я ею пользуюсь в bot
 run_db = DB(**CONNECT)
