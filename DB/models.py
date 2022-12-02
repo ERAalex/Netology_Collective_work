@@ -8,6 +8,7 @@ class Users(Base):
     __tablename__ = 'users'
 
     id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
+    mode = relationship('User_session', backref='users')
     name = sqa.Column(sqa.String, nullable=False)
     last_name = sqa.Column(sqa.String, nullable=False)
     vk_id = sqa.Column(sqa.Text, nullable=False)
@@ -28,6 +29,19 @@ class Users(Base):
     users_selected = relationship('UsersSelected', backref='users')
     banned = relationship('Banned', backref='users')
     deleted_selected = relationship('DeletedSelected', backref='users')
+    mode = relationship('User_session', backref='users')
+
+
+class User_session(Base):
+    __tablename__ = 'user_session'
+
+    id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
+    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=False)
+    mode_name = sqa.Column(sqa.String, nullable=True)
+    city_find = sqa.Column(sqa.String, nullable=True)
+    age_find = sqa.Column(sqa.Integer, nullable=True)
+    ids_found = sqa.Column(sqa.Text, nullable=True)
+    step = sqa.Column(sqa.Integer, nullable=True)
 
 
 class Selected(Base):

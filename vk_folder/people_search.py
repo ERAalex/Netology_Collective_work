@@ -569,3 +569,6 @@ user_need = User_vk('vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_e
 # some_choice.get_top_3_foto(705169327)
 
 # print(some_choice.get_all_available_people(1))
+
+# data = some_choice.get_all_available_people(1, 30, 'москва', 30)
+# pprint(data)

@@ -2,8 +2,9 @@ import sqlalchemy
 from psycopg2 import extras, connect
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from pprint import pprint
 
-from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables
+from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables, User_session
 
 
 CONNECT = {
@@ -30,7 +31,9 @@ class DB:
         # self.cur = self.conn.cursor(cursor_factory=extras.DictCursor)
         # Session = sessionmaker(bind=self.engine)
         # self.session = Session()
+
         ######
+
     def create_database(self):
         '''создание новой БД'''
         self.conn = connect(user=self.conn_info['username'],
@@ -49,6 +52,88 @@ class DB:
         '''запуск создания всех таблиц'''
         create_tables(self.engine)
 
+    # Поместить в файл db.py
+    def get_step_ids_session(self, user_id):
+        '''получить номер шага для показа пользователей сессии по айди из списка'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        for item in query:
+            return item.step
+
+    # Поместить в файл db.py
+    def update_step_session(self, user_id, next_step):
+        '''обновить шаг для выдачи следующего айди из найденных в сессии'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = db_session.query(User_session).get(user_id)
+        add_query.step = next_step
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+    # Поместить в файл db.py
+    def get_users_choise(self, user_id):
+        '''получить список с информацией, которую польщователь вводил для поиска в сессии(город возраст)'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        result = []
+        for item in query:
+            result.append(item.age_find)
+            result.append(item.ids_found)
+
+            #######################################
+
+    # Поместить в файл db.py (на вход принимает user_id из базы и название режима)
+    def add_user_mode(self, user_id, mode):
+        '''добавление режима юзера'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = User_session(id_user=user_id, mode_name=mode)
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+
+    # Поместить в файл db.py (на вход принимает user_id из базы)
+    def get_user_mode(self, user_id):
+        '''получить режим пользователя из базы'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        for item in query:
+            return item.mode_name
+
+
+    # Поместить в файл db.py (на вход принимает user_id из базы и название режима)
+    def update_user_mode(self, user_id, mode):
+        '''обновить режим юзера, когда он поменяется'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = db_session.query(User_session).get(user_id)
+        add_query.mode_name = mode
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+    # УДАЛИТЬ юзера из таблицы режима
+    def delete_user_mode(self, user_id):
+        '''удалить юзера из таблицы режимов'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        del_query = db_session.query(User_session).filter(User_session.id_user == user_id).one()
+        db_session.delete(del_query)
+        db_session.commit()
+        db_session.close()
+
+
+
+
+###########################################################################################
 
     def add_user(self, user_info: dict):
         '''добавление нового пользователя в БД'''
@@ -275,7 +360,7 @@ run_db = DB(**CONNECT)
 # print(run_db.get_all_vk_id_of_banned(12))
 
 # test = run_db.create_database()
-# create = run_db.create_table()
+create = run_db.create_table()
 #
 # test2 = run_db.add_user(test_user)
 #

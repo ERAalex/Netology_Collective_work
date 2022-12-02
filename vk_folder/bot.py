@@ -25,12 +25,29 @@ people_search = User_vk(token_user)
 class User:
     def __init__(self, id, mode):
         self.id = id
+
+        self.id_in_db = 0
+        self.count_in_db = 0
+
         self.mode = mode
+        # записываем данные найденных людей, например для добавления в БД
+        self.param_persons = {}
+        # список людей, которые выводится функцией get_all_available_people
+        self.list_of_search_persons = []
+        # для перепора этого списка нам нужен счетчик, для вывода следющего
+        self.count_in_person_list = 0
+        # сюда идет список людей полученных функцией по показу бана в БД
+        self.user_id_in_db = []
+
         self.name = ''
         self.age = -1
         self.related_finded = {}
+        self.offset_vk = 0
 
 
+users_class = []
+
+check = []
 
 class Bot:
 
@@ -42,9 +59,7 @@ class Bot:
         self.vk = self.vk_session.get_api()
         user = User(100, 'some')
         self.users = [user]
-        # нам нужен для просмотра людей в БД, это список и при нажатии на кнопку дальше, мы выбираешь следующего
-        # как только мы нажали на start count обнуляется и если человек начнет смотреть БД, то снова с 0 список людей
-        self.count = 0
+
         # param_persons = нужен нам для сохранения данных по людям, которых искать, и будем перезаписывать каждый раз
         # при подаче новых данных для поиска от пользователя
         self.param_persons = {}
@@ -57,6 +72,8 @@ class Bot:
         self.user_id_in_db = 0
         self.count_in_person_list = 0
         self.users_class = []
+
+
 
     def sender(self, id, text, key):
         self.vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': key})
@@ -110,6 +127,7 @@ class Bot:
 
 
 
+
     # cамая главная часть, работа бота
     def start_run(self):
         for event in self.longpoll.listen():
@@ -119,197 +137,212 @@ class Bot:
                     id = event.user_id
                     self.id_user = id
 
-
-
-
-                    # если у нас нет объекта класса Юзер (по vk_id) то добавляем
-                    if id not in self.users_class:
-                        # создаем объект класса Юзер
+                    # для начала првоеряем если список объектов класса Юзер не равен 0, тк. при запуске бота он = 0
+                    # заполним его сразу первым юзером
+                    if len(users_class) == 0:
                         self.id_user_bot = User(id, '')
-                        self.users_class.append(self.id_user_bot)
-                    else:
-                        pass
+                        users_class.append(self.id_user_bot)
+                        print('check1')
 
-                    for item in self.users_class:
-                        print('__________')
-                        print(item.id)
-                        print('__________')
+                    # дальше проверяем есть такой объект-юзер или нет, если новый человек заносим его как объект в базу
+                    # для использования методов и сохранения его персональных данных на момент пользования ботом
+                    for item in users_class:
+                        if item.id != id:
+                            self.id_user_bot = User(id, '')
+                            users_class.append(self.id_user_bot)
+                            print('check2')
+                        else:
+                            pass
 
 
+                    for item in users_class:
+                        if item.id not in check:
+                            check.append(item.id)
+                    print(check)
 
-
-                    # проверяем есть ли такой пользователь в базе
+                    # проверяем есть ли такой пользователь в базе и обновляем
                     data = people_search.get_user_info(id)
 
                     run_db.add_user(data)
 
-                    # Достаем и сохраняем id в БД текущего пользователя
+                    # Достаем и сохраняем id в БД текущего пользователя. Внимание это не ID vk!!
                     user_find_from_db = run_db.search_user_from_db('id' + str(id))
-                    self.user_id_in_db = user_find_from_db['id']
+                    self.id_user_bot.id_in_db = user_find_from_db['id']
+                    print(self.id_user_bot.id_in_db)
+
+                    user_id_saved = user_find_from_db['id']
+
 
                     msg = event.text.lower()
+
 
                     if msg in iniciate_messages:
                         self.sender(id, 'hello', self.clear_key_board())
 
                     if msg == 'start':
-                        flag = 0
-                        self.count = 0
-                        self.offset_vk = 0
-                        for user in self.users:
-                            if user.id == id:
-                                flag = 1
-                                user.mode = 'start'
-                                break
-                            if flag == 0:
-                                self.users.append(User(id, 'start'))
-                                self.sender(id, 'Что будем делать? Наберите цифру: \n'
-                                                '1- Посмотреть добавленные контакты \n'
-                                                '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
-                                                '3- Общий поиск людей(указать пол, возраст, город) \n'
-                                                '\n'
-                                                '\n'
-                                                ' ', self.clear_key_board())
+                        try:
+                            run_db.delete_user_mode(user_id_saved)
+                        except:
+                            pass
+                        self.sender(id, 'Что будем делать? Наберите цифру: \n'
+                                        '1- Посмотреть добавленные контакты \n'
+                                        '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                        '3- Общий поиск людей(указать пол, возраст, город) \n'
+                                        '\n'
+                                        '\n'
+                                        ' ', self.clear_key_board())
+
+                        # сохраняем в БД статус
+                        run_db.add_user_mode(user_id_saved, 'start')
+                        # self.id_user_bot.mode = 'start'
+
+
 
                     else:
-                        for user in self.users:
+                        for user in users_class:
                             if user.id == id:
+                             ##  Логика на Старт меню
 
-                                ##  Логика на Старт меню
-                                if user.mode == 'start':
+
+                                # if self.id_user_bot.mode == 'start':
+                                if run_db.get_user_mode(user_id_saved) == 'start':
+
                                     if str(msg) == '1':
                                         self.sender(id, 'Ваши контакты: Нажмите "Следующий" \n ',
-                                                    self.menu_check_db_key_board())
-                                        user.mode = 'db_check'
-                                        break
+                                                self.menu_check_db_key_board())
+                                        run_db.update_user_mode(user_id_saved, 'db_check')
+
 
                                     if str(msg) == '3':
                                         self.sender(id, 'Для общего поиска людей выберите кого ищем \n ',
-                                                    self.menu_sex_key_board())
-                                        user.mode = 'menu_sex'
+                                                self.menu_sex_key_board())
+                                        run_db.update_user_mode(user_id_saved, 'menu_sex')
 
 
 
-                                ##  Логика на 1 пункт
-                                elif user.mode == 'db_check':
-                                    # достаем id нашего юзера из базы данных
-                                    data_us_bd = run_db.search_user_from_db('id' + str(id))
-                                    # по нему ищем релайтед людей, и получаем список с id этих людей
-                                    all_related = run_db.find_using_users_selected(data_us_bd['id'])
-                                    # пробегаемся по списку, и ищем через функцию данные по id
-                                    list_related = []
-                                    for item in all_related:
-                                        result_realted = run_db.search_selected_from_db_using_id(item)
-                                        # получаем айди пользователя из БД
-                                        related_db_id = result_realted['id']
-                                        # проверка на не вхождение в список удаленных пользователем
-                                        check_deleted = run_db.get_id_deleted_selected(self.user_id_in_db)
-                                        if related_db_id not in check_deleted:
-                                            list_related.append(f'''{result_realted["name"]}  
-                                                                    {result_realted["last_name"]}
-                                                                    https://vk.com/{result_realted["vk_id"]}''')
-
-
-
-
-
-                                    if msg == 'следующий контакт':
-                                        # так как у нас список с людьми, при каждом нажатии кнопки count +1, т.е.
-                                        # выводим следующего в списке.
-                                        try:
-                                            self.sender(id, f'{list_related[self.count]} \n ',
-                                                        self.menu_check_db_key_board())
-                                            user.mode = 'db_check'
-                                            self.count += 1
-                                        except:
-                                            self.sender(id, 'Больше нет людей в базе, напишите start \n ',
-                                                        self.clear_key_board())
-                                            # обязательно обнуляем и счетчик и статус. все сначало через старт
-                                            user.mode = ''
-                                            self.count = 0
-
-
-
-                                    if msg == 'удалить контакт':
-                                        self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
-                                                    self.menu_check_db_key_board())
-                                        # помечаем пользователя удаленным
-                                        run_db.mark_deleted_from_selected(self.user_id_in_db, related_db_id)
-                                        user.mode = 'db_check'
-
-
-
-                                    if msg == 'искать людей':
-                                        self.sender(id, 'Переходим на поиск людей, Для общего поиска людей выберите '
-                                                        'кого ищем \n ',
-                                                    self.menu_sex_key_board())
-                                        user.mode = 'menu_sex'
+                                        ##  Логика на 1 пункт
+                                    elif run_db.get_user_mode(user_id_saved) == 'db_check':
+                                        # достаем id нашего юзера из базы данных
+                                        data_us_bd = run_db.search_user_from_db('id' + str(id))
+                                        # по нему ищем релайтед людей, и получаем список с id этих людей
+                                        all_related = run_db.find_using_users_selected(data_us_bd['id'])
+                                        # пробегаемся по списку, и ищем через функцию данные по id
+                                        list_related = []
+                                        for item in all_related:
+                                            result_realted = run_db.search_selected_from_db_using_id(item)
+                                            # получаем айди пользователя из БД
+                                            related_db_id = result_realted['id']
+                                            # проверка на не вхождение в список удаленных пользователем
+                                            check_deleted = run_db.get_id_deleted_selected(self.id_user_bot.id_in_db)
+                                            if related_db_id not in check_deleted:
+                                                list_related.append(f'''{result_realted["name"]}  
+                                                                        {result_realted["last_name"]}
+                                                                        https://vk.com/{result_realted["vk_id"]}''')
 
 
 
 
+                                        if msg == 'следующий контакт':
+                                            # так как у нас список с людьми, при каждом нажатии кнопки count +1, т.е.
+                                            # выводим следующего в списке.
+                                            try:
+                                                self.sender(id, f'{list_related[self.id_user_bot.count_in_db]} \n ',
+                                                            self.menu_check_db_key_board())
+                                                self.id_user_bot.mode = 'db_check'
+                                                self.id_user_bot.count_in_db += 1
+                                            except:
+                                                self.sender(id, 'Больше нет людей в базе, напишите start \n ',
+                                                            self.clear_key_board())
+                                                # обязательно обнуляем и счетчик и статус. все сначало через старт
+                                                self.id_user_bot.mode = ''
+                                                self.id_user_bot.count_in_db = 0
+
+
+
+
+
+                                            if msg == 'удалить контакт':
+                                                self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
+                                                            self.menu_check_db_key_board())
+                                                # помечаем пользователя удаленным
+                                                run_db.mark_deleted_from_selected(self.user_id_in_db, related_db_id)
+                                                self.id_user_bot.mode = 'db_check'
+
+
+
+                                            if msg == 'искать людей':
+                                                self.sender(id, 'Переходим на поиск людей, Для общего поиска людей выберите '
+                                                                'кого ищем \n ',
+                                                            self.menu_sex_key_board())
+                                                self.id_user_bot.mode = 'menu_sex'
 
 
 
 
 
 
-                                ##  Логика на 3 пункт
 
-                                elif user.mode == 'menu_sex':
+                                       ## Логика на 3 пункт бота ###
+
+                                elif run_db.get_user_mode(user_id_saved) == 'menu_sex':
+                                # elif self.id_user_bot.mode == 'menu_sex':
                                     if msg == 'девушку':
                                         self.sender(id, 'напишите возраст девушки, например: 27',
                                                     self.clear_key_board())
-                                        user.mode = 'girl_find_age'
+                                        run_db.update_user_mode(user_id_saved, 'girl_find_age')
                                         break
+
+
 
 
                                     if msg == 'парня':
                                         self.sender(id, 'напишите возраст парня, например: 27',
                                                     self.clear_key_board())
-                                        user.mode = 'boy_find_age'
+                                        run_db.update_user_mode(user_id_saved, 'boy_find_age')
                                         break
 
 
 
 
-
-                                # меню выбора с девушкой
-                                if user.mode == 'girl_find_age':
+                                        # меню выбора с девушкой
+                                if run_db.get_user_mode(user_id_saved) == 'girl_find_age':
+                                # if self.id_user_bot.mode == 'girl_find_age':
                                     # обрабатываем не корректный ввод пользователя + нам надо увериться, что это
-                                    # наше сообщение, оно должно быть числом
+                                     # наше сообщение, оно должно быть числом
                                     try:
                                         decision = int(msg)
                                         if decision:
                                             girl_decision_age = msg
-                                            # мы создали словарь, куда будем пересоздавать данные людей
-                                            # для ввода в наш поиск, для аргументов.
-                                            self.param_persons['age_girl'] = int(girl_decision_age)
+                                            # сохраняем в БД выбор пользователя
+
+                                            self.id_user_bot.param_persons['age_girl'] = int(girl_decision_age)
                                             self.sender(id, 'напишите город в котором искать, мы начнем поиск \n'
                                                             'это может занять пару минут, что значительно ускорит \n'
                                                             'дальнейший вывод',
                                                         self.clear_key_board())
-                                            user.mode = 'girl_find_city'
+                                            run_db.update_user_mode(user_id_saved, 'girl_find_city')
                                             break
                                     except:
                                         self.sender(id, 'вы не ввели число, повторите ввод возраста девушки',
                                                     self.clear_key_board())
-                                        user.mode = 'girl_find_age'
+                                        run_db.update_user_mode(user_id_saved, 'girl_find_age')
 
 
 
 
                                 # тут функция с выводом девушки
-                                if user.mode == 'girl_find_city':
+                                if run_db.get_user_mode(user_id_saved) == 'girl_find_city':
+                                # if self.id_user_bot.mode == 'girl_find_city':
+                                    pprint(check)
                                     if msg:
-                                        self.param_persons['city_girl'] = msg
+                                        self.id_user_bot.param_persons['city_girl'] = msg
                                         # # теперь у нас есть два аргумента для функции поиска
                                         # в словаре self.param_persons
 
                                         # парсим людей получаем список где человек 100 сохраняем
-                                        self.list_of_search_persons = some_choice.get_all_available_people \
-                                            (1, self.param_persons['age_girl'],
-                                             self.param_persons['city_girl'], 100)
+                                        self.id_user_bot.list_of_search_persons = some_choice.get_all_available_people \
+                                            (1, self.id_user_bot.param_persons['age_girl'],
+                                                self.id_user_bot.param_persons['city_girl'], 50)
 
                                         # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
 
@@ -317,8 +350,8 @@ class Bot:
                                         while while_true == True:
 
                                             # берем первого человека в списке(это словарь), и увеличиваем self.count..
-                                            result = self.list_of_search_persons[self.count_in_person_list]
-                                            self.count_in_person_list += 1
+                                            result = self.id_user_bot.list_of_search_persons[self.id_user_bot.count_in_person_list]
+                                            self.id_user_bot.count_in_person_list += 1
                                             result_id = result['vk_id']
 
 
@@ -327,64 +360,68 @@ class Bot:
                                             try:
                                                 result_id_fin = int(result_id)
                                                 # сохраянем временно данные пользователя если вдруг добавлять в базу
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                             except:
                                                 # если vk_id изменен, ищем орининальный функцией
                                                 result_id_fin = some_choice.find_id_using_screen(result_id)
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                                 # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
 
 
                                             # проверка если человек в бане
-                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.id_user_bot.id_in_db)
 
-                                            if str(self.param_persons['vk_id']) in list_ban:
+                                            if str(self.id_user_bot.param_persons['vk_id']) in list_ban:
                                                 print('в бане')
                                                 # добавляем offset чтобы пропустить его и идем дальше по людям
 
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_id_fin)}',
                                                             self.menu_find_people_key_board())
-                                                user.mode = 'girl_find_run'
+                                                self.id_user_bot.mode = 'girl_find_run'
                                                 while_true = False
 
 
 
-                                if user.mode == 'girl_find_run':
+                                if self.id_user_bot.mode == 'girl_find_run':
                                     if msg == 'следующий человек':
-
 
                                         while_true = True
                                         while while_true == True:
-                                            # берем из уже сохраненного списка следующего человека и увеличиваем счетчик
-                                            result = self.list_of_search_persons[self.count_in_person_list]
-                                            self.count_in_person_list += 1
+
+                                            # берем первого человека в списке(это словарь), и увеличиваем self.count..
+                                            result = self.id_user_bot.list_of_search_persons[
+                                                self.id_user_bot.count_in_person_list]
+                                            self.id_user_bot.count_in_person_list += 1
                                             result_id = result['vk_id']
 
                                             # если id можно выразить числом, все хорошо, если id изменен как имя, то
                                             # ищем реальный id человека:
                                             try:
                                                 result_id_fin = int(result_id)
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                # сохраянем временно данные пользователя если вдруг добавлять в базу
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                             except:
+                                                # если vk_id изменен, ищем орининальный функцией
                                                 result_id_fin = some_choice.find_id_using_screen(result_id)
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                                 # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
 
-
                                             # проверка если человек в бане
-                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.id_user_bot.id_in_db)
 
-                                            if str(self.param_persons['vk_id']) in list_ban:
+                                            if str(self.id_user_bot.param_persons['vk_id']) in list_ban:
                                                 print('в бане')
+                                                # добавляем offset чтобы пропустить его и идем дальше по людям
+
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_id_fin)}',
                                                             self.menu_find_people_key_board())
-                                                user.mode = 'girl_find_run'
+                                                self.id_user_bot.mode = 'girl_find_run'
                                                 while_true = False
 
 
@@ -424,7 +461,7 @@ class Bot:
 
 
                                 ####### меню выбора с парнем
-                                if user.mode == 'boy_find_age':
+                                if self.id_user_bot.mode == 'boy_find_age':
                                     # обрабатываем не корректный ввод пользователя + нам надо увериться, что это
                                     # наше сообщение, оно должно быть числом
 
@@ -434,31 +471,31 @@ class Bot:
                                             boy_decision_age = msg
                                             # мы создали словарь, куда будем пересоздавать данные людей
                                             # для ввода в наш поиск, для аргументов.
-                                            self.param_persons['age_boy'] = int(boy_decision_age)
-                                            self.sender(id, 'напишите город в котором искать, мы начнем поиск \n'
+                                            self.id_user_bot.param_persons['age_boy'] = int(boy_decision_age)
+                                            self.sender(id, f'напишите город {self.id_user_bot.id}в котором искать, мы начнем поиск \n'
                                                             'это может занять пару минут, что значительно ускорит \n'
                                                             'дальнейший вывод',
                                                         self.clear_key_board())
-                                            user.mode = 'boy_find_city'
+                                            self.id_user_bot.mode = 'boy_find_city'
                                             break
                                     except:
                                         self.sender(id, 'вы не ввели число, повторите ввод возраста парня',
                                                     self.clear_key_board())
-                                        user.mode = 'boy_find_age'
+                                        self.id_user_bot.mode = 'boy_find_age'
 
 
 
                                 # тут функция с выводом девушки
-                                if user.mode == 'boy_find_city':
+                                if self.id_user_bot.mode == 'boy_find_city':
                                     if msg:
-                                        self.param_persons['city_boy'] = msg
+                                        self.id_user_bot.param_persons['city_boy'] = msg
                                         # # теперь у нас есть два аргумента для функции поиска
                                         # в словаре self.param_persons
 
                                         # парсим людей получаем список где человек 100 сохраняем
-                                        self.list_of_search_persons = some_choice.get_all_available_people \
-                                            (2, self.param_persons['age_boy'],
-                                             self.param_persons['city_boy'], 100)
+                                        self.id_user_bot.list_of_search_persons = some_choice.get_all_available_people \
+                                            (2, self.id_user_bot.param_persons['age_boy'],
+                                             self.id_user_bot.param_persons['city_boy'], 100)
 
                                         # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
 
@@ -466,8 +503,8 @@ class Bot:
                                         while while_true == True:
 
                                             # берем первого человека в списке(это словарь), и увеличиваем self.count..
-                                            result = self.list_of_search_persons[self.count_in_person_list]
-                                            self.count_in_person_list += 1
+                                            result = self.id_user_bot.list_of_search_persons[self.id_user_bot.count_in_person_list]
+                                            self.id_user_bot.count_in_person_list += 1
                                             result_id = result['vk_id']
 
 
@@ -476,27 +513,27 @@ class Bot:
                                             try:
                                                 result_id_fin = int(result_id)
                                                 # сохраянем временно данные пользователя если вдруг добавлять в базу
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                             except:
                                                 # если vk_id изменен, ищем орининальный функцией
                                                 result_id_fin = some_choice.find_id_using_screen(result_id)
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                                 # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
 
 
                                             # проверка если человек в бане
-                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.id_user_bot.id_in_db)
 
-                                            if str(self.param_persons['vk_id']) in list_ban:
+                                            if str(self.id_user_bot.param_persons['vk_id']) in list_ban:
                                                 print('в бане')
                                                 # добавляем offset чтобы пропустить его и идем дальше по людям
 
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_id_fin)}',
                                                             self.menu_find_people_key_board())
-                                                user.mode = 'boy_find_run'
+                                                self.id_user_bot.mode = 'boy_find_run'
                                                 while_true = False
 
 
@@ -508,35 +545,40 @@ class Bot:
 
                                         while_true = True
                                         while while_true == True:
-                                            # берем из уже сохраненного списка следующего человека и увеличиваем счетчик
-                                            result = self.list_of_search_persons[self.count_in_person_list]
-                                            self.count_in_person_list += 1
+
+                                            # берем первого человека в списке(это словарь), и увеличиваем self.count..
+                                            result = self.id_user_bot.list_of_search_persons[self.id_user_bot.count_in_person_list]
+                                            self.id_user_bot.count_in_person_list += 1
                                             result_id = result['vk_id']
+
 
                                             # если id можно выразить числом, все хорошо, если id изменен как имя, то
                                             # ищем реальный id человека:
                                             try:
                                                 result_id_fin = int(result_id)
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                # сохраянем временно данные пользователя если вдруг добавлять в базу
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                             except:
+                                                # если vk_id изменен, ищем орининальный функцией
                                                 result_id_fin = some_choice.find_id_using_screen(result_id)
-                                                self.param_persons['vk_id'] = result_id_fin
+                                                self.id_user_bot.param_persons['vk_id'] = result_id_fin
                                                 # там словарь приходит, достаем конкретно id номер юзера которогосмотрим
 
 
                                             # проверка если человек в бане
-                                            list_ban = run_db.get_all_vk_id_of_banned(self.user_id_in_db)
+                                            list_ban = run_db.get_all_vk_id_of_banned(self.id_user_bot.id_in_db)
 
-                                            if str(self.param_persons['vk_id']) in list_ban:
+                                            if str(self.id_user_bot.param_persons['vk_id']) in list_ban:
                                                 print('в бане')
+                                                # добавляем offset чтобы пропустить его и идем дальше по людям
+
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_id_fin)}',
                                                             self.menu_find_people_key_board())
-                                                user.mode = 'boy_find_run'
+                                                self.id_user_bot.mode = 'boy_find_run'
                                                 while_true = False
-
 
 
 
