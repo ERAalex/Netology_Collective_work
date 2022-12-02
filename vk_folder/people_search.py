@@ -354,7 +354,6 @@ class vk_choice:
                 # i+=1
                 # print('закрыт профиль', i)
                 pass
-        filtred_people = [','.join(filtred_people)]
         return filtred_people
 
 
@@ -422,12 +421,10 @@ class vk_choice:
 
 
 
-
-
-
 # не удалять строчки внизу, используются
 some_choice = vk_choice(os.getenv('token_user'), os.getenv('token_community'))
 user_need = User_vk(os.getenv('token_user'))
+#pprint(some_choice.get_all_available_people(1, 27, 'Чебоксары'))
 
 #
 # some_choice.find_id_using_screen('s.hussey')
