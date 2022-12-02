@@ -52,6 +52,74 @@ class DB:
         '''запуск создания всех таблиц'''
         create_tables(self.engine)
 
+
+#########################################
+
+    # Поместить в файл db.py
+    def add_user_choise_ids(self, user_id, ids):
+        '''добавление айди выбранных страниц для пользователя'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = db_session.query(User_session).get(user_id)
+        add_query.ids_found = ids
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+
+
+    def add_user_choise_age(self, user_id, age):
+        '''добавление выбранного возраста для поиска'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = db_session.query(User_session).get(user_id)
+        add_query.age_find = age
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+
+    def add_user_choise_city(self, user_id, city):
+        '''добавление выбранного для поиска города пользователя'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = db_session.query(User_session).get(user_id)
+        add_query.city_find = city
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+
+    def get_users_choise_age(self, user_id):
+        '''получить список с информацией, которую польщователь вводил для поиска в сессии(город возраст)'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        for item in query:
+            return item.age_find
+
+
+    def get_users_choise_ids(self, user_id):
+        '''получить список с информацией, которую польщователь вводил для поиска в сессии(vk_id людей)'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        for item in query:
+            return item.ids_found
+
+
+    def get_users_choise_city(self, user_id):
+        '''получить список с информацией, которую польщователь вводил для поиска в сессии(город)'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        for item in query:
+            return item.city_find
+
+
     # Поместить в файл db.py
     def get_step_ids_session(self, user_id):
         '''получить номер шага для показа пользователей сессии по айди из списка'''
