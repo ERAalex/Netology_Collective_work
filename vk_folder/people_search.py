@@ -321,13 +321,13 @@ class vk_choice:
 
 
 
-    def get_all_available_people(self, gender, age, name_city, total_and_offset: int):
+    def get_all_available_people(self, gender, age, name_city):
         '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
         city = vk_choice.get_city_id(self, name_city)
         people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
-                                                    sex=gender, offset=total_and_offset,
+                                                    sex=gender, offset=1,
                                                     blacklisted_by_me=0, birth_year=(2022 - int(age)),
-                                                    has_photo=1, count=total_and_offset, city_id=city,
+                                                    has_photo=1, count=100, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
                                                            'sex, books, bdate, birth_year, activities, '
                                                            'interests, education, movies, games')
@@ -339,59 +339,7 @@ class vk_choice:
                 photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
                 if len(photos) >=3:
                     if 'city' in el and el['city']['title'] == name_city.title():
-                        people_dict = {}
-                        filtred_people.append(people_dict)
-                        people_dict['city'] = el['city']['title']
-
-                        if el['sex'] == 1:
-                            people_dict['gender'] = 'ж'
-                        else:
-                            people_dict['gender'] = 'м'
-                        if 'langs' in el:
-                            people_dict['languages'] = el['personal']['langs']
-                        else:
-                            people_dict['languages'] = ''
-
-                        people_dict['name'] = el['first_name']
-                        people_dict['last_name'] = el['last_name']
-                        people_dict['vk_id'] = photos[0]['owner_id']
-                        # people_dict['vk_id'] = el["domain"]
-                        if 'relation' in el:
-                            people_dict['relationship'] = el['relation']
-                        else:
-                            people_dict['relationship'] = 0
-
-                        # 1 — не женат / не замужем;
-                        # 2 — есть друг / есть подруга;
-                        # 3 — помолвлен / помолвлена;
-                        # 4 — женат / замужем;
-                        # 5 — всё сложно;
-                        # 6 — в активном поиске;
-                        # 7 — влюблён / влюблена;
-                        # 8 — в гражданском браке;
-                        # 0 — не указано.
-
-                        if 'bdate' in el:
-                            people_dict['b_day'] = el['bdate']
-                        else:
-                            people_dict['b_day'] = ''
-                        if 'activities' in el:
-                            people_dict['activities'] = el['activities']
-                        else:
-                            people_dict['activities'] = ''
-                        if 'interests' in el:
-                            people_dict['interests'] = el['interests']
-                        else:
-                            people_dict['interests'] = ''
-                        if 'games' in el:
-                            people_dict['games'] = el['games']
-                        else:
-                            people_dict['games'] = ''
-                        if 'movies' in el:
-                            people_dict['movies'] = el['movies']
-                        else:
-                            people_dict['movies'] = ''
-
+                        filtred_people.append(str(el['id']))
                     else:
                         # i+=1
                         # print('нет города в описании', i)
@@ -406,6 +354,7 @@ class vk_choice:
                 # i+=1
                 # print('закрыт профиль', i)
                 pass
+        filtred_people = [','.join(filtred_people)]
         return filtred_people
 
 
@@ -433,6 +382,7 @@ class vk_choice:
         name = profile_all_info_to_bd['name']
         surname = profile_all_info_to_bd['last_name']
         profile_id_int = self.session_api_user.users.get(user_ids=profile_all_info_to_bd['vk_id'])[0]['id']
+        print(profile_id_int)
         profile_photos = self.session_api_user.photos.get(owner_id=profile_id_int, extended=1, album_id='profile')['items']
         most_liked = sorted(profile_photos, key=lambda likes: likes['likes']['count'], reverse=True)[:3]
         all_photo_attachments = []
