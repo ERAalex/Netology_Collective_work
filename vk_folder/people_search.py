@@ -564,3 +564,5 @@ user_need = User_vk(os.getenv('token_user'))
 
 # print(some_choice.get_all_available_people(1))
 
+# data = some_choice.get_all_available_people(1, 30, 'москва', 30)
+# pprint(data)
