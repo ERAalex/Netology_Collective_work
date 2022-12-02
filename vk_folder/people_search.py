@@ -58,6 +58,8 @@ class User_vk:
         if 'personal' in user_profile[0]:
             if 'langs' in user_profile[0]['personal']:
                 user_dict['language'] = user_profile[0]['personal']['langs']
+            else:
+                user_dict['language'] = ''
         else:
             user_dict['language'] = ''
         if 'activities' in user_profile[0]:
@@ -128,6 +130,8 @@ class vk_choice:
         result = self.session_api_user.utils.resolveScreenName(screen_name=screen_n)
         result_obj_id = result['object_id']
         return result_obj_id
+
+
 
 
 
@@ -317,10 +321,6 @@ class vk_choice:
 
 
 
-
-
-
-
     def get_all_available_people(self, gender, age, name_city, total_and_offset: int):
         '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
         city = vk_choice.get_city_id(self, name_city)
@@ -410,79 +410,6 @@ class vk_choice:
 
 
 
-
-    # def get_all_available_people(self, gender, age, name_city, offset_bot):
-    #     city = vk_choice.get_city_id(self, name_city)
-    #     people = self.session_api_user.users.search(sort=0, blacklisted=0, offset=offset_bot, is_closed=False,
-    #                                                 sex=gender,
-    #                                                 blacklisted_by_me=0, birth_year=(2022 - int(age)),
-    #                                                 has_photo=1, count=30, city_id=city,
-    #                                                 fields='domain, relation, personal, city, about, '
-    #                                                        'sex, books, bdate, birth_year, activities, '
-    #                                                        'interests, education, movies, games')
-    #
-    #
-    #     people_dict = {}
-    #
-    #     # Список людей не в блэклисте, у которых есть фото,
-    #
-    #     for el in people['items']:
-    #         if 'city' in el:
-    #             people_dict['city'] = el['city']['title']
-    #         else:
-    #             people_dict['city'] = ''
-    #         if el['sex'] == 1:
-    #             people_dict['gender'] = 'ж'
-    #         else:
-    #             people_dict['gender'] = 'м'
-    #         if 'langs' in el:
-    #             people_dict['languages'] = el['personal']['langs']
-    #         else:
-    #             people_dict['languages'] = ''
-    #
-    #         people_dict['name'] = el['first_name']
-    #         people_dict['last_name'] = el['last_name']
-    #         people_dict['vk_id'] = el["domain"]
-    #         if 'relation' in el:
-    #             people_dict['relationship'] = el['relation']
-    #         else:
-    #             people_dict['relationship'] = 0
-    #         # 1 — не женат / не замужем;
-    #         # 2 — есть друг / есть подруга;
-    #         # 3 — помолвлен / помолвлена;
-    #         # 4 — женат / замужем;
-    #         # 5 — всё сложно;
-    #         # 6 — в активном поиске;
-    #         # 7 — влюблён / влюблена;
-    #         # 8 — в гражданском браке;
-    #         # 0 — не указано.
-    #
-    #         if 'bdate' in el:
-    #             people_dict['b_day'] = el['bdate']
-    #         else:
-    #             people_dict['b_day'] = ''
-    #         if 'activities' in el:
-    #             people_dict['activities'] = el['activities']
-    #         else:
-    #             people_dict['activities'] = ''
-    #         if 'interests' in el:
-    #             people_dict['interests'] = el['interests']
-    #         else:
-    #             people_dict['interests'] = ''
-    #         if 'games' in el:
-    #             people_dict['games'] = el['games']
-    #         else:
-    #             people_dict['games'] = ''
-    #         if 'movies' in el:
-    #             people_dict['movies'] = el['movies']
-    #         else:
-    #             people_dict['movies'] = ''
-    #     print(people_dict)
-    #     return people_dict
-
-    # profile_all_info_to_bd = get_all_available_people()
-
-
     def get_top_3_foto(self, id):
         '''функция по сохранению 3 фото из id'''
         profile_photos = self.session_api_user.photos.get(owner_id=id, extended=1, album_id='profile')['items']
@@ -565,4 +492,5 @@ user_need = User_vk(os.getenv('token_user'))
 # print(some_choice.get_all_available_people(1))
 
 # data = some_choice.get_all_available_people(1, 30, 'москва', 30)
+# print(data)
 # pprint(data)
