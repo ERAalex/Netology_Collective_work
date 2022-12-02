@@ -6,17 +6,20 @@ import json
 from vk_folder.some_frases import iniciate_messages
 # from db_mongo import find_document, series_collection, insert_document
 import os
+from pprint import pprint
 
 from DB.db import run_db
+
 from vk_folder.people_search import User_vk, some_choice
 
-token_user = os.getenv('token_user')
-vk_token = os.getenv('token')
+token_user = 'vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_erk0c9PQNZSWic8612MNG5k1TUvgvRaq7DuXCiCiKDw5x9mgynxnj0dOkeF0cmKNhvfNFnDjYjknZm3vQvbL8xCIMKOzR1XkaqTfUhRZ2x2TyK8caGW4iFa179eK3W9scP12RuOdBBgu'
+vk_token = 'vk1.a.TxawX-osea0OL1EzeFKsTuDuoG5cEKBm0DK9rXq99CkgfHdLIEYKOibsguLIiMpw_tTJzTBwGtI9mLWwWVvauxOYLnVyw6Lxjom8paI4D7w_Gmie4_BolseXfKRo5qlHFF57OXxbYL8VmKLVx6hd6H92gD9VDob8SEZdpVIlMKSh2L9zucC2Jm9MPfSn8lxdF63JFV9CC8NgbwfSCOos6A'
 vk_s = vk_api.VkApi(token=vk_token)
 session_api = vk_s.get_api()
 
 
 people_search = User_vk(token_user)
+
 
 
 class User:
@@ -25,6 +28,8 @@ class User:
         self.mode = mode
         self.name = ''
         self.age = -1
+        self.related_finded = {}
+
 
 
 class Bot:
@@ -47,9 +52,11 @@ class Bot:
         # 2,3 и т.д., будем увеличивать при пролистывании людей, чтобы не показывать 1 и тех же
         self.offset_vk = 0
         self.id_user_bot = ''
+        self.id_user = ''
         self.while_true = True
         self.user_id_in_db = 0
         self.count_in_person_list = 0
+        self.users_class = []
 
     def sender(self, id, text, key):
         self.vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': key})
@@ -100,6 +107,9 @@ class Bot:
         ])
         return menu_check_db
 
+
+
+
     # cамая главная часть, работа бота
     def start_run(self):
         for event in self.longpoll.listen():
@@ -107,10 +117,30 @@ class Bot:
                 if event.to_me:
 
                     id = event.user_id
-                    self.id_user_bot = id
+                    self.id_user = id
+
+
+
+
+                    # если у нас нет объекта класса Юзер (по vk_id) то добавляем
+                    if id not in self.users_class:
+                        # создаем объект класса Юзер
+                        self.id_user_bot = User(id, '')
+                        self.users_class.append(self.id_user_bot)
+                    else:
+                        pass
+
+                    for item in self.users_class:
+                        print('__________')
+                        print(item.id)
+                        print('__________')
+
+
+
 
                     # проверяем есть ли такой пользователь в базе
                     data = people_search.get_user_info(id)
+
                     run_db.add_user(data)
 
                     # Достаем и сохраняем id в БД текущего пользователя
@@ -141,7 +171,6 @@ class Bot:
                                                 '\n'
                                                 ' ', self.clear_key_board())
 
-
                     else:
                         for user in self.users:
                             if user.id == id:
@@ -160,12 +189,15 @@ class Bot:
                                         user.mode = 'menu_sex'
 
 
+
                                 ##  Логика на 1 пункт
                                 elif user.mode == 'db_check':
-                                    # ищем релайтед людей, и получаем список с id этих людей
-                                    all_related = run_db.find_using_users_selected(self.user_id_in_db)
-                                    list_related = []
+                                    # достаем id нашего юзера из базы данных
+                                    data_us_bd = run_db.search_user_from_db('id' + str(id))
+                                    # по нему ищем релайтед людей, и получаем список с id этих людей
+                                    all_related = run_db.find_using_users_selected(data_us_bd['id'])
                                     # пробегаемся по списку, и ищем через функцию данные по id
+                                    list_related = []
                                     for item in all_related:
                                         result_realted = run_db.search_selected_from_db_using_id(item)
                                         # получаем айди пользователя из БД
@@ -176,6 +208,9 @@ class Bot:
                                             list_related.append(f'''{result_realted["name"]}  
                                                                     {result_realted["last_name"]}
                                                                     https://vk.com/{result_realted["vk_id"]}''')
+
+
+
 
 
                                     if msg == 'следующий контакт':
@@ -194,12 +229,14 @@ class Bot:
                                             self.count = 0
 
 
+
                                     if msg == 'удалить контакт':
                                         self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
                                                     self.menu_check_db_key_board())
                                         # помечаем пользователя удаленным
                                         run_db.mark_deleted_from_selected(self.user_id_in_db, related_db_id)
                                         user.mode = 'db_check'
+
 
 
                                     if msg == 'искать людей':
@@ -209,7 +246,16 @@ class Bot:
                                         user.mode = 'menu_sex'
 
 
+
+
+
+
+
+
+
+
                                 ##  Логика на 3 пункт
+
                                 elif user.mode == 'menu_sex':
                                     if msg == 'девушку':
                                         self.sender(id, 'напишите возраст девушки, например: 27',
@@ -223,6 +269,9 @@ class Bot:
                                                     self.clear_key_board())
                                         user.mode = 'boy_find_age'
                                         break
+
+
+
 
 
                                 # меню выбора с девушкой
@@ -246,6 +295,8 @@ class Bot:
                                         self.sender(id, 'вы не ввели число, повторите ввод возраста девушки',
                                                     self.clear_key_board())
                                         user.mode = 'girl_find_age'
+
+
 
 
                                 # тут функция с выводом девушки
@@ -294,10 +345,11 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'girl_find_run'
                                                 while_true = False
+
 
 
                                 if user.mode == 'girl_find_run':
@@ -330,10 +382,11 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'girl_find_run'
                                                 while_true = False
+
 
 
                                     # заносим в БАН в БД, по vk id (причем сохраняется там без приписки id - id232423)
@@ -344,6 +397,8 @@ class Bot:
                                         self.sender(id, 'Данный пользователь больше не будет появляться в рекомендациях'
                                                         ' \n ', self.menu_find_people_key_board())
                                         user.mode = 'girl_find_run'
+
+
 
 
                                     if msg == 'добавить в контакты':
@@ -363,6 +418,9 @@ class Bot:
                                                         'в Базу данных \n ', self.menu_find_people_key_board())
 
                                         user.mode = 'girl_find_run'
+
+
+
 
 
                                 ####### меню выбора с парнем
@@ -387,6 +445,7 @@ class Bot:
                                         self.sender(id, 'вы не ввели число, повторите ввод возраста парня',
                                                     self.clear_key_board())
                                         user.mode = 'boy_find_age'
+
 
 
                                 # тут функция с выводом девушки
@@ -435,10 +494,13 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'boy_find_run'
                                                 while_true = False
+
+
+
 
 
                                 if user.mode == 'boy_find_run':
@@ -470,10 +532,13 @@ class Bot:
                                             else:
                                                 self.sender(id,
                                                             f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot, result_id_fin)}',
+                                                            f' {some_choice.send_info_in_bot(self.id_user, result_id_fin)}',
                                                             self.menu_find_people_key_board())
                                                 user.mode = 'boy_find_run'
                                                 while_true = False
+
+
+
 
 
                                     # заносим в БАН в БД, по vk id (причем сохраняется там без приписки id - id232423)
@@ -484,6 +549,8 @@ class Bot:
                                         self.sender(id, 'Данный пользователь больше не будет появляться в рекомендациях'
                                                         ' \n ', self.menu_find_people_key_board())
                                         user.mode = 'boy_find_run'
+
+
 
 
                                     if msg == 'добавить в контакты':
@@ -503,6 +570,13 @@ class Bot:
                                                         f'{data_people_selected["last_name"] } '
                                                    'в Базу данных \n ', self.menu_find_people_key_board())
                                         user.mode = 'boy_find_run'
+
+
+
+
+
+
+
 
 
 bot_start = Bot(vk_token)

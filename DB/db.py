@@ -3,7 +3,7 @@ from psycopg2 import extras, connect
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables
+from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables
 
 
 CONNECT = {
