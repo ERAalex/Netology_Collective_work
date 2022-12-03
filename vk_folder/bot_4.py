@@ -1,3 +1,4 @@
+
 import vk_api
 import os
 from pprint import pprint
@@ -231,7 +232,7 @@ class vk_choice:
             people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
                                                         sex=gender, offset=self.count,
                                                         blacklisted_by_me=0, birth_year=(2022 - int(age)),
-                                                        has_photo=1, count=100, city_id=city,
+                                                        has_photo=1, count=1000, city_id=city,
                                                         fields='domain, relation, personal, city, about, '
                                                                'sex, books, bdate, birth_year, activities, '
                                                                'interests, education, movies, games')
@@ -319,10 +320,11 @@ class vk_choice:
 
 
 
+
+
     def get_all_available_people(self, gender, age, name_city):
         '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
         city = vk_choice.get_city_id(self, name_city)
-        print(city)
         people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
                                                     sex=gender, offset=1,
                                                     blacklisted_by_me=0, birth_year=(2022 - int(age)),
@@ -330,43 +332,30 @@ class vk_choice:
                                                     fields='domain, relation, personal, city, about, '
                                                            'sex, books, bdate, birth_year, activities, '
                                                            'interests, education, movies, games')
-        print(people)
+
         filtred_people = []
-        i = 0
         # Список людей не в блэклисте, у которых есть фото,
         for el in people['items']:
-
             try:
                 photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
                 if len(photos) >=3:
                     if 'city' in el and el['city']['title'] == name_city.title():
                         filtred_people.append(str(el['id']))
                     else:
-                        i+=1
-                        #print('нет города в описании')
+                        # i+=1
+                        # print('нет города в описании', i)
                         pass
 
                 else:
-                    i+=1
-                    #print('меньше 3 фоток')
+                    # i+=1
+                    # print('меньше 3 фоток', i)
                     pass
 
             except:
-                i+=1
-                #print('закрыт профиль')
+                # i+=1
+                # print('закрыт профиль', i)
                 pass
-        print(i)
-        print(filtred_people)
-        filtred_people = [','.join(filtred_people)]
-        result = ''
-        for item in filtred_people:
-            result = item
-        return result
-
-
-
-
-
+        return filtred_people
 
 
 
@@ -393,6 +382,7 @@ class vk_choice:
         name = profile_all_info_to_bd['name']
         surname = profile_all_info_to_bd['last_name']
         profile_id_int = self.session_api_user.users.get(user_ids=profile_all_info_to_bd['vk_id'])[0]['id']
+        print(profile_id_int)
         profile_photos = self.session_api_user.photos.get(owner_id=profile_id_int, extended=1, album_id='profile')['items']
         most_liked = sorted(profile_photos, key=lambda likes: likes['likes']['count'], reverse=True)[:3]
         all_photo_attachments = []
@@ -432,12 +422,10 @@ class vk_choice:
 
 
 
-
-
-
 # не удалять строчки внизу, используются
-some_choice = vk_choice('vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_erk0c9PQNZSWic8612MNG5k1TUvgvRaq7DuXCiCiKDw5x9mgynxnj0dOkeF0cmKNhvfNFnDjYjknZm3vQvbL8xCIMKOzR1XkaqTfUhRZ2x2TyK8caGW4iFa179eK3W9scP12RuOdBBgu', 'vk1.a.TxawX-osea0OL1EzeFKsTuDuoG5cEKBm0DK9rXq99CkgfHdLIEYKOibsguLIiMpw_tTJzTBwGtI9mLWwWVvauxOYLnVyw6Lxjom8paI4D7w_Gmie4_BolseXfKRo5qlHFF57OXxbYL8VmKLVx6hd6H92gD9VDob8SEZdpVIlMKSh2L9zucC2Jm9MPfSn8lxdF63JFV9CC8NgbwfSCOos6A')
-user_need = User_vk('vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_erk0c9PQNZSWic8612MNG5k1TUvgvRaq7DuXCiCiKDw5x9mgynxnj0dOkeF0cmKNhvfNFnDjYjknZm3vQvbL8xCIMKOzR1XkaqTfUhRZ2x2TyK8caGW4iFa179eK3W9scP12RuOdBBgu')
+some_choice = vk_choice(os.getenv('token_user'), os.getenv('token_community'))
+user_need = User_vk(os.getenv('token_user'))
+#pprint(some_choice.get_all_available_people(1, 27, 'Чебоксары'))
 
 #
 # some_choice.find_id_using_screen('s.hussey')
@@ -451,6 +439,5 @@ user_need = User_vk('vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_e
 
 # print(some_choice.get_all_available_people(1))
 
-# data = some_choice.get_all_available_people_2(1, 30, 'москва')
-# pprint(data)
-
+# data = some_choice.get_all_available_people(1, 30, 'москва', 30)
+# print(data)
