@@ -19,20 +19,12 @@ CONNECT = {
 
 class DB:
 
-
     def __init__(self, **conn_info):
         self.conn = None
         self.conn_info = conn_info
         DSN = sqlalchemy.engine.url.URL.create(**conn_info)
         self.engine = sqlalchemy.create_engine(DSN)
-        ######
-        # Нужен коннектор и кур. + сессия, для запросов sqlalchemy в боте + пришлось приписать пару библиотек
-        # self.conn = connect(dbname="vvvkinder", user="postgres", password="nazca007", host="localhost")
-        # self.cur = self.conn.cursor(cursor_factory=extras.DictCursor)
-        # Session = sessionmaker(bind=self.engine)
-        # self.session = Session()
 
-        ######
 
     def create_database(self):
         '''создание новой БД'''
@@ -52,88 +44,7 @@ class DB:
         '''запуск создания всех таблиц'''
         create_tables(self.engine)
 
-    # Поместить в файл db.py
-    def get_step_ids_session(self, user_id):
-        '''получить номер шага для показа пользователей сессии по айди из списка'''
-        Session = sessionmaker(bind=self.engine)
-        db_session = Session()
-        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
-        db_session.close()
-        for item in query:
-            return item.step
-
-    # Поместить в файл db.py
-    def update_step_session(self, user_id, next_step):
-        '''обновить шаг для выдачи следующего айди из найденных в сессии'''
-        Session = sessionmaker(bind=self.engine)
-        db_session = Session()
-        add_query = db_session.query(User_session).get(user_id)
-        add_query.step = next_step
-        db_session.add(add_query)
-        db_session.commit()
-        db_session.close()
-
-    # Поместить в файл db.py
-    def get_users_choise(self, user_id):
-        '''получить список с информацией, которую польщователь вводил для поиска в сессии(город возраст)'''
-        Session = sessionmaker(bind=self.engine)
-        db_session = Session()
-        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
-        db_session.close()
-        result = []
-        for item in query:
-            result.append(item.age_find)
-            result.append(item.ids_found)
-
-            #######################################
-
-    # Поместить в файл db.py (на вход принимает user_id из базы и название режима)
-    def add_user_mode(self, user_id, mode):
-        '''добавление режима юзера'''
-        Session = sessionmaker(bind=self.engine)
-        db_session = Session()
-        add_query = User_session(id_user=user_id, mode_name=mode)
-        db_session.add(add_query)
-        db_session.commit()
-        db_session.close()
-
-
-    # Поместить в файл db.py (на вход принимает user_id из базы)
-    def get_user_mode(self, user_id):
-        '''получить режим пользователя из базы'''
-        Session = sessionmaker(bind=self.engine)
-        db_session = Session()
-        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
-        db_session.close()
-        for item in query:
-            return item.mode_name
-
-
-    # Поместить в файл db.py (на вход принимает user_id из базы и название режима)
-    def update_user_mode(self, user_id, mode):
-        '''обновить режим юзера, когда он поменяется'''
-        Session = sessionmaker(bind=self.engine)
-        db_session = Session()
-        add_query = db_session.query(User_session).get(user_id)
-        add_query.mode_name = mode
-        db_session.add(add_query)
-        db_session.commit()
-        db_session.close()
-
-    # УДАЛИТЬ юзера из таблицы режима
-    def delete_user_mode(self, user_id):
-        '''удалить юзера из таблицы режимов'''
-        Session = sessionmaker(bind=self.engine)
-        db_session = Session()
-        del_query = db_session.query(User_session).filter(User_session.id_user == user_id).one()
-        db_session.delete(del_query)
-        db_session.commit()
-        db_session.close()
-
-
-
-
-###########################################################################################
+####################################### CONSTANT INTERACTION WITH DATABASE #######################################
 
     def add_user(self, user_info: dict):
         '''добавление нового пользователя в БД'''
@@ -207,7 +118,7 @@ class DB:
         db_session.commit()
         db_session.close()
 
-######
+
     def find_using_users_selected(self, user_id):
         '''у нас есть id пользователя бота, надо найти по нему всех релайтед людей из UsersSelected'''
         Session = sessionmaker(bind=self.engine)
@@ -218,7 +129,7 @@ class DB:
         for item in query:
             result.append(item.id_selected)
         return result
-#####
+
     
     def add_banned(self, user_id, selected_vk_id):
         '''добавление в бан лист'''
@@ -228,7 +139,6 @@ class DB:
         db_session.add(add_query)
         db_session.commit()
         db_session.close()
-
 
 
     def get_all_vk_id_of_banned(self, user_id):
@@ -241,7 +151,6 @@ class DB:
         for item in query:
             result.append(item.banned_vk_id)
         return result
-
 
 
     def get_id_deleted_selected(self, user_id):
@@ -294,9 +203,6 @@ class DB:
                       }
         return result
 
-
-##### Для поиска у нас не vk_id релайтед персона (как внизу функция), а на руках только id релайтед из функции
-##### find_using_users_selected поэтому нужен поиск по id
 
     def search_selected_from_db_using_id(self, id):
         '''получения словаря с информацией о выбранном пользователе из БД'''
@@ -353,6 +259,81 @@ class DB:
                       }
         return result
         
+####################################### SESSION INTERACTION WITH DATABASE #######################################
+
+    def get_step_ids_session(self, user_id):
+        '''получить номер шага для показа пользователей сессии по айди из списка'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        for item in query:
+            return item.step
+
+
+    def update_step_session(self, user_id, next_step):
+        '''обновить шаг для выдачи следующего айди из найденных в сессии'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = db_session.query(User_session).get(user_id)
+        add_query.step = next_step
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+    
+    def get_users_choise(self, user_id):
+        '''получить список с информацией, которую польщователь вводил для поиска в сессии(город возраст)'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        result = []
+        for item in query:
+            result.append(item.age_find)
+            result.append(item.ids_found)
+
+
+    def add_user_mode(self, user_id, mode):
+        '''добавление режима юзера'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = User_session(id_user=user_id, mode_name=mode)
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+
+    def get_user_mode(self, user_id):
+        '''получить режим пользователя из базы'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        query = db_session.query(User_session).filter(User_session.id_user == user_id).all()
+        db_session.close()
+        for item in query:
+            return item.mode_name
+
+
+    def update_user_mode(self, user_id, mode):
+        '''обновить режим юзера, когда он поменяется'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        add_query = db_session.query(User_session).get(user_id)
+        add_query.mode_name = mode
+        db_session.add(add_query)
+        db_session.commit()
+        db_session.close()
+
+
+    def delete_user_mode(self, user_id):
+        '''удалить юзера из таблицы режимов'''
+        Session = sessionmaker(bind=self.engine)
+        db_session = Session()
+        del_query = db_session.query(User_session).filter(User_session.id_user == user_id).one()
+        db_session.delete(del_query)
+        db_session.commit()
+        db_session.close()
+    
 
 # не трогать ниже строчку, я ею пользуюсь в bot
 run_db = DB(**CONNECT)
