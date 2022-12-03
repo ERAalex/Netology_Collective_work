@@ -196,7 +196,7 @@ class Bot:
                                         except:
                                             self.sender(id, 'Больше нет людей в базе, напишите start \n ',
                                                         self.clear_key_board())
-                                            # обязательно обнуляем и счетчик и статус. все сначало через старт
+                                            # обязательно обнуляем и счетчик и статус. все с начала через старт
                                             run_db.update_user_mode(user_id_saved, 'db_check')
 
                                     if msg == 'удалить контакт':
