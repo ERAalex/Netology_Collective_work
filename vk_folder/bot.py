@@ -12,8 +12,8 @@ from DB.db import run_db
 
 from vk_folder.people_search import User_vk, some_choice, user_need
 
-token_user = 'vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_erk0c9PQNZSWic8612MNG5k1TUvgvRaq7DuXCiCiKDw5x9mgynxnj0dOkeF0cmKNhvfNFnDjYjknZm3vQvbL8xCIMKOzR1XkaqTfUhRZ2x2TyK8caGW4iFa179eK3W9scP12RuOdBBgu'
-vk_token = 'vk1.a.TxawX-osea0OL1EzeFKsTuDuoG5cEKBm0DK9rXq99CkgfHdLIEYKOibsguLIiMpw_tTJzTBwGtI9mLWwWVvauxOYLnVyw6Lxjom8paI4D7w_Gmie4_BolseXfKRo5qlHFF57OXxbYL8VmKLVx6hd6H92gD9VDob8SEZdpVIlMKSh2L9zucC2Jm9MPfSn8lxdF63JFV9CC8NgbwfSCOos6A'
+token_user = os.getenv('token_user')
+vk_token = os.getenv('token')
 vk_s = vk_api.VkApi(token=vk_token)
 session_api = vk_s.get_api()
 
@@ -226,6 +226,7 @@ class Bot:
                                         all_related = run_db.find_using_users_selected(data_us_bd['id'])
                                         # пробегаемся по списку, и ищем через функцию данные по id
                                         list_related = []
+                                        
                                         for item in all_related:
                                             result_realted = run_db.search_selected_from_db_using_id(item)
                                             # получаем айди пользователя из БД
@@ -236,7 +237,6 @@ class Bot:
                                                 list_related.append(f'''{result_realted["name"]}  
                                                                         {result_realted["last_name"]}
                                                                         https://vk.com/{result_realted["vk_id"]}''')
-
 
 
 
@@ -254,8 +254,6 @@ class Bot:
                                                 # обязательно обнуляем и счетчик и статус. все сначало через старт
                                                 self.id_user_bot.mode = ''
                                                 self.id_user_bot.count_in_db = 0
-
-
 
 
 
@@ -367,7 +365,7 @@ class Bot:
                                             result_next = result_2[step_now]
 
                                             # сразу увеличиваем step
-                                            run_db.update_step_session(user_id_saved, step_now + 1)
+                                            run_db.update_step_session(user_id_saved, step_now+1)
 
 
                                             # проверка если человек в бане
@@ -409,7 +407,7 @@ class Bot:
                                             result_next = result_2[step_now]
 
                                             # сразу увеличиваем step
-                                            run_db.update_step_session(user_id_saved, step_now + 1)
+                                            run_db.update_step_session(user_id_saved, step_now+1)
 
 
                                             # проверка если человек в бане
@@ -439,7 +437,7 @@ class Bot:
                                         result_1 = run_db.get_users_choise_ids(user_id_saved)
                                         result_2 = result_1.split(',')
                                         step_now = run_db.get_step_ids_session(user_id_saved)
-                                        result_next = result_2[step_now]
+                                        result_next = result_2[step_now-1]
 
                                         run_db.add_banned(user_id_saved, result_next)
 
@@ -454,7 +452,7 @@ class Bot:
                                         result_2 = result_1.split(',')
                                         step_now = run_db.get_step_ids_session(user_id_saved)
                                         # это наш vk_id текущего человека
-                                        result_next = result_2[step_now]
+                                        result_next = result_2[step_now-1]
 
                                         data_people_selected = some_choice.get_rel_people_by_id(result_next)
                                         run_db.add_selected(data_people_selected)

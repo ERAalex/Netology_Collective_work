@@ -25,7 +25,6 @@ class User_vk:
         user_dict = {}
         user_profile = self.session_api.users.get(user_ids=vk_id,
                                                 fields='domain, relation, city, sex, bdate, personal, activities, interests, movies, books, music, games, education')
-
         user_dict['vk_id'] = 'id' + str(vk_id)
         user_dict['name'] = user_profile[0]['first_name']
         user_dict['last_name'] = user_profile[0]['last_name']
@@ -322,7 +321,6 @@ class vk_choice:
     def get_all_available_people(self, gender, age, name_city):
         '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
         city = vk_choice.get_city_id(self, name_city)
-        print(city)
         people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
                                                     sex=gender, offset=1,
                                                     blacklisted_by_me=0, birth_year=(2022 - int(age)),
@@ -330,33 +328,29 @@ class vk_choice:
                                                     fields='domain, relation, personal, city, about, '
                                                            'sex, books, bdate, birth_year, activities, '
                                                            'interests, education, movies, games')
-        print(people)
+
         filtred_people = []
-        i = 0
         # Список людей не в блэклисте, у которых есть фото,
         for el in people['items']:
-
             try:
                 photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
                 if len(photos) >=3:
                     if 'city' in el and el['city']['title'] == name_city.title():
                         filtred_people.append(str(el['id']))
                     else:
-                        i+=1
-                        #print('нет города в описании')
+                        # i+=1
+                        # print('нет города в описании', i)
                         pass
 
                 else:
-                    i+=1
-                    #print('меньше 3 фоток')
+                    # i+=1
+                    # print('меньше 3 фоток', i)
                     pass
 
             except:
-                i+=1
-                #print('закрыт профиль')
+                # i+=1
+                # print('закрыт профиль', i)
                 pass
-        print(i)
-        print(filtred_people)
         filtred_people = [','.join(filtred_people)]
         result = ''
         for item in filtred_people:
@@ -436,8 +430,11 @@ class vk_choice:
 
 
 # не удалять строчки внизу, используются
-some_choice = vk_choice('vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_erk0c9PQNZSWic8612MNG5k1TUvgvRaq7DuXCiCiKDw5x9mgynxnj0dOkeF0cmKNhvfNFnDjYjknZm3vQvbL8xCIMKOzR1XkaqTfUhRZ2x2TyK8caGW4iFa179eK3W9scP12RuOdBBgu', 'vk1.a.TxawX-osea0OL1EzeFKsTuDuoG5cEKBm0DK9rXq99CkgfHdLIEYKOibsguLIiMpw_tTJzTBwGtI9mLWwWVvauxOYLnVyw6Lxjom8paI4D7w_Gmie4_BolseXfKRo5qlHFF57OXxbYL8VmKLVx6hd6H92gD9VDob8SEZdpVIlMKSh2L9zucC2Jm9MPfSn8lxdF63JFV9CC8NgbwfSCOos6A')
-user_need = User_vk('vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_erk0c9PQNZSWic8612MNG5k1TUvgvRaq7DuXCiCiKDw5x9mgynxnj0dOkeF0cmKNhvfNFnDjYjknZm3vQvbL8xCIMKOzR1XkaqTfUhRZ2x2TyK8caGW4iFa179eK3W9scP12RuOdBBgu')
+some_choice = vk_choice(os.getenv('token_user'), os.getenv('token_community'))
+user_need = User_vk(os.getenv('token_user'))
+
+# some_choice = vk_choice('')
+# user_need = User_vk('')
 
 #
 # some_choice.find_id_using_screen('s.hussey')

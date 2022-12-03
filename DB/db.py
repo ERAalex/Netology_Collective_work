@@ -10,7 +10,7 @@ from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSel
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': 'SN33Vf8m', # поставить свой пароль от postgres
+        'password': '___________', # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
@@ -366,7 +366,7 @@ class DB:
         '''добавление режима юзера'''
         Session = sessionmaker(bind=self.engine)
         db_session = Session()
-        add_query = User_session(id_user=user_id, mode_name=mode)
+        add_query = User_session(id=user_id, id_user=user_id, mode_name=mode)
         db_session.add(add_query)
         db_session.commit()
         db_session.close()
@@ -409,7 +409,7 @@ run_db = DB(**CONNECT)
 # print(run_db.get_all_vk_id_of_banned(12))
 
 # test = run_db.create_database()
-create = run_db.create_table()
+# create = run_db.create_table()
 #
 # test2 = run_db.add_user(test_user)
 #
