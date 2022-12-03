@@ -27,16 +27,6 @@ class User:
         self.id_in_db = 0
         self.count_in_db = 0
 
-        self.mode = mode
-        # записываем данные найденных людей, например для добавления в БД
-        self.param_persons = {}
-        # список людей, которые выводится функцией get_all_available_people
-        self.list_of_search_persons = []
-        # для перепора этого списка нам нужен счетчик, для вывода следющего
-        self.count_in_person_list = 0
-        # сюда идет список людей полученных функцией по показу бана в БД
-        self.user_id_in_db = []
-
         self.name = ''
         self.age = -1
         self.related_finded = {}
@@ -44,12 +34,10 @@ class User:
 
 
 users_class = []
-
 check = []
 
 
 class Bot:
-
     # начальные параметры для работы бота
     def __init__(self, token):
         self.token = token
@@ -59,18 +47,9 @@ class Bot:
         user = User(100, 'some')
         self.users = [user]
 
-        # param_persons = нужен нам для сохранения данных по людям, которых искать, и будем перезаписывать каждый раз
-        # при подаче новых данных для поиска от пользователя
-        self.param_persons = {}
-        # offset выводит в вк следующего человека в списке из полученных. т.е. 0 - самый первый в списке, потом
-        # 2,3 и т.д., будем увеличивать при пролистывании людей, чтобы не показывать 1 и тех же
-        self.offset_vk = 0
         self.id_user_bot = ''
         self.id_user = ''
-        self.while_true = True
-        self.user_id_in_db = 0
-        self.count_in_person_list = 0
-        self.users_class = []
+
 
     def sender(self, id, text, key):
         self.vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': key})
@@ -226,10 +205,11 @@ class Bot:
                                         result_realted = run_db.search_selected_from_db_using_id(item)
                                         # получаем айди пользователя из БД
                                         related_db_id = result_realted['id']
-                                        related_db_id_list.append(related_db_id)
+
                                         # проверка на не вхождение в список удаленных пользователем
                                         check_deleted = run_db.get_id_deleted_selected(user_id_saved)
                                         if related_db_id not in check_deleted:
+                                            related_db_id_list.append(related_db_id)
                                             list_related.append(f'''{result_realted["name"]}  
                                                                     {result_realted["last_name"]}
                                                                     https://vk.com/{result_realted["vk_id"]}''')
@@ -258,11 +238,12 @@ class Bot:
                                         # достаем текущий шаг
                                         step_now = run_db.get_step_ids_session(user_id_saved)
 
-                                        self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
-                                                    self.menu_check_db_key_board())
-                                        # помечаем пользователя удаленным
-                                        run_db.mark_deleted_from_selected(user_id_saved, related_db_id_list[step_now-1])
-                                        run_db.update_user_mode(user_id_saved, 'db_check')
+                                        if msg == 'удалить контакт':
+                                            self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
+                                                        self.menu_check_db_key_board())
+                                            # помечаем пользователя удаленным
+                                            run_db.mark_deleted_from_selected(user_id_saved, related_db_id_list[step_now-1])
+                                            user.mode = 'db_check'
 
 
                                     if msg == 'искать людей':
