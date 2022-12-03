@@ -25,7 +25,6 @@ class User_vk:
         user_dict = {}
         user_profile = self.session_api.users.get(user_ids=vk_id,
                                                 fields='domain, relation, city, sex, bdate, personal, activities, interests, movies, books, music, games, education')
-
         user_dict['vk_id'] = 'id' + str(vk_id)
         user_dict['name'] = user_profile[0]['first_name']
         user_dict['last_name'] = user_profile[0]['last_name']
@@ -433,6 +432,9 @@ class vk_choice:
 # не удалять строчки внизу, используются
 some_choice = vk_choice(os.getenv('token_user'), os.getenv('token_community'))
 user_need = User_vk(os.getenv('token_user'))
+
+# some_choice = vk_choice('')
+# user_need = User_vk('')
 
 #
 # some_choice.find_id_using_screen('s.hussey')

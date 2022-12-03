@@ -25,23 +25,10 @@ class Users(Base):
     music = sqa.Column(sqa.Text, nullable=True)
     gender = sqa.Column(sqa.Text, nullable=True)
 
-    # gender = relationship('Gender', backref='users')
     users_selected = relationship('UsersSelected', backref='users')
     banned = relationship('Banned', backref='users')
     deleted_selected = relationship('DeletedSelected', backref='users')
     mode = relationship('User_session', backref='users')
-
-
-class User_session(Base):
-    __tablename__ = 'user_session'
-
-    id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
-    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=False)
-    mode_name = sqa.Column(sqa.String, nullable=True)
-    city_find = sqa.Column(sqa.String, nullable=True)
-    age_find = sqa.Column(sqa.Integer, nullable=True)
-    ids_found = sqa.Column(sqa.Text, nullable=True)
-    step = sqa.Column(sqa.Integer, nullable=True)
 
 
 class Selected(Base):
@@ -64,17 +51,9 @@ class Selected(Base):
     music = sqa.Column(sqa.Text, nullable=True)
     gender = sqa.Column(sqa.Text, nullable=True)
 
-    # gender = relationship('Gender', backref='selected')
     photo = relationship('Photos', backref='selected')
     users_selected = relationship('UsersSelected', backref='selected')
     deleted = relationship('DeletedSelected', backref='selected')
-
-
-# class Gender(Base):
-#     __tablename__ = 'gender'
-
-#     id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
-#     gender_type = sqa.Column(sqa.String, nullable=False)
 
 
 class Photos(Base):
@@ -109,8 +88,18 @@ class DeletedSelected(Base):
     id_selected = sqa.Column(sqa.Integer, sqa.ForeignKey('selected.id'), nullable=False)
 
 
+class User_session(Base):
+    __tablename__ = 'user_session'
+
+    id = sqa.Column(sqa.Integer, primary_key=True, unique=True)
+    id_user = sqa.Column(sqa.Integer, sqa.ForeignKey('users.id'), nullable=False)
+    mode_name = sqa.Column(sqa.String, nullable=True)
+    city_find = sqa.Column(sqa.String, nullable=True)
+    age_find = sqa.Column(sqa.Integer, nullable=True)
+    ids_found = sqa.Column(sqa.Text, nullable=True)
+    step = sqa.Column(sqa.Integer, nullable=True)
+    
+
 def create_tables(engine):
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-
-
