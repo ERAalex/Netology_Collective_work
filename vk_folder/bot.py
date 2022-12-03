@@ -161,14 +161,9 @@ class Bot:
 
                     # Достаем и сохраняем id в БД текущего пользователя. Внимание это не ID vk!!
                     user_find_from_db = run_db.search_user_from_db('id' + str(id))
-                    # self.id_user_bot.id_in_db = user_find_from_db['id']
-                    # print(self.id_user_bot.id_in_db)
-
                     user_id_saved = user_find_from_db['id']
 
-
                     msg = event.text.lower()
-
 
                     if msg in iniciate_messages:
                         self.sender(id, 'hello', self.clear_key_board())
@@ -188,7 +183,7 @@ class Bot:
 
                         # сохраняем в БД статус
                         run_db.add_user_mode(user_id_saved, 'start')
-                        # self.id_user_bot.mode = 'start'
+
 
 
 
@@ -217,22 +212,27 @@ class Bot:
                                         ##  Логика на 1 пункт
 
                                     elif run_db.get_user_mode(user_id_saved) == 'db_check':
-                                        # достаем id нашего юзера из базы данных
-                                        data_us_bd = run_db.search_user_from_db('id' + str(id))
+
                                         # по нему ищем релайтед людей, и получаем список с id этих людей
-                                        all_related = run_db.find_using_users_selected(data_us_bd['id'])
+                                        all_related = run_db.find_using_users_selected(user_id_saved)
+                                        print(all_related)
                                         # пробегаемся по списку, и ищем через функцию данные по id
+                                        # сразу готовим count в виде step
+                                        run_db.update_step_session(user_id_saved, 0)
                                         list_related = []
+
                                         for item in all_related:
                                             result_realted = run_db.search_selected_from_db_using_id(item)
+                                            print(result_realted)
                                             # получаем айди пользователя из БД
                                             related_db_id = result_realted['id']
                                             # проверка на не вхождение в список удаленных пользователем
-                                            check_deleted = run_db.get_id_deleted_selected(self.id_user_bot.id_in_db)
+                                            check_deleted = run_db.get_id_deleted_selected(related_db_id)
                                             if related_db_id not in check_deleted:
                                                 list_related.append(f'''{result_realted["name"]}  
                                                                         {result_realted["last_name"]}
                                                                         https://vk.com/{result_realted["vk_id"]}''')
+                                        print(list_related)
 
 
 
@@ -240,17 +240,23 @@ class Bot:
                                         if msg == 'следующий контакт':
                                             # так как у нас список с людьми, при каждом нажатии кнопки count +1, т.е.
                                             # выводим следующего в списке.
+                                            # достаем текущий шаг
+                                            step_now = run_db.get_step_ids_session(user_id_saved)
                                             try:
-                                                self.sender(id, f'{list_related[self.id_user_bot.count_in_db]} \n ',
+                                                self.sender(id, f'{list_related[step_now]} \n ',
                                                             self.menu_check_db_key_board())
-                                                self.id_user_bot.mode = 'db_check'
-                                                self.id_user_bot.count_in_db += 1
+                                                run_db.update_user_mode(user_id_saved, 'db_check')
+
+                                                # сразу увеличиваем step
+                                                run_db.update_step_session(user_id_saved, step_now + 1)
+
                                             except:
                                                 self.sender(id, 'Больше нет людей в базе, напишите start \n ',
                                                             self.clear_key_board())
                                                 # обязательно обнуляем и счетчик и статус. все сначало через старт
-                                                self.id_user_bot.mode = ''
-                                                self.id_user_bot.count_in_db = 0
+                                                run_db.update_user_mode(user_id_saved, '')
+                                                # сразу готовим count в виде step
+                                                run_db.update_step_session(user_id_saved, 0)
 
 
 
