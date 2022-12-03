@@ -10,7 +10,7 @@ from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSel
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': 'postgres',
-        'password': '___________', # поставить свой пароль от postgres
+        'password': 'nazca007', # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'

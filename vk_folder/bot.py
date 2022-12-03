@@ -197,61 +197,82 @@ class Bot:
                                         self.sender(id, 'Ваши контакты: Нажмите "Следующий" \n ',
                                                     self.menu_check_db_key_board())
                                         run_db.update_user_mode(user_id_saved, 'db_check')
+                                        # сразу готовим count в виде step
+                                        run_db.update_step_session(user_id_saved, 0)
 
                                     if str(msg) == '3':
                                         self.sender(id, 'Для общего поиска людей выберите кого ищем \n ',
                                                     self.menu_sex_key_board())
                                         run_db.update_user_mode(user_id_saved, 'menu_sex')
 
+
+
+
+
+
                                         ##  Логика на 1 пункт
 
-                                    elif run_db.get_user_mode(user_id_saved) == 'db_check':
-                                        # достаем id нашего юзера из базы данных
-                                        data_us_bd = run_db.search_user_from_db('id' + str(id))
-                                        # по нему ищем релайтед людей, и получаем список с id этих людей
-                                        all_related = run_db.find_using_users_selected(data_us_bd['id'])
-                                        # пробегаемся по списку, и ищем через функцию данные по id
-                                        list_related = []
 
-                                        for item in all_related:
-                                            result_realted = run_db.search_selected_from_db_using_id(item)
-                                            # получаем айди пользователя из БД
-                                            related_db_id = result_realted['id']
-                                            # проверка на не вхождение в список удаленных пользователем
-                                            check_deleted = run_db.get_id_deleted_selected(self.id_user_bot.id_in_db)
-                                            if related_db_id not in check_deleted:
-                                                list_related.append(f'''{result_realted["name"]}  
-                                                                        {result_realted["last_name"]}
-                                                                        https://vk.com/{result_realted["vk_id"]}''')
+                                    ##  Логика на 1 пункт
+                                elif run_db.get_user_mode(user_id_saved) == 'db_check':
+                                    # достаем id нашего юзера из базы данных
+                                    data_us_bd = run_db.search_user_from_db('id' + str(id))
+                                    # по нему ищем релайтед людей, и получаем список с id этих людей
+                                    all_related = run_db.find_using_users_selected(data_us_bd['id'])
+                                    # пробегаемся по списку, и ищем через функцию данные по id
+                                    list_related = []
+                                    related_db_id_list = []
+                                    for item in all_related:
+                                        result_realted = run_db.search_selected_from_db_using_id(item)
+                                        # получаем айди пользователя из БД
+                                        related_db_id = result_realted['id']
+                                        related_db_id_list.append(related_db_id)
+                                        # проверка на не вхождение в список удаленных пользователем
+                                        check_deleted = run_db.get_id_deleted_selected(user_id_saved)
+                                        if related_db_id not in check_deleted:
+                                            list_related.append(f'''{result_realted["name"]}  
+                                                                    {result_realted["last_name"]}
+                                                                    https://vk.com/{result_realted["vk_id"]}''')
 
-                                        if msg == 'следующий контакт':
-                                            # так как у нас список с людьми, при каждом нажатии кнопки count +1, т.е.
-                                            # выводим следующего в списке.
-                                            try:
-                                                self.sender(id, f'{list_related[self.id_user_bot.count_in_db]} \n ',
-                                                            self.menu_check_db_key_board())
-                                                self.id_user_bot.mode = 'db_check'
-                                                self.id_user_bot.count_in_db += 1
-                                            except:
-                                                self.sender(id, 'Больше нет людей в базе, напишите start \n ',
-                                                            self.clear_key_board())
-                                                # обязательно обнуляем и счетчик и статус. все сначало через старт
-                                                self.id_user_bot.mode = ''
-                                                self.id_user_bot.count_in_db = 0
 
-                                            if msg == 'удалить контакт':
-                                                self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
-                                                            self.menu_check_db_key_board())
-                                                # помечаем пользователя удаленным
-                                                run_db.mark_deleted_from_selected(self.user_id_in_db, related_db_id)
-                                                self.id_user_bot.mode = 'db_check'
 
-                                            if msg == 'искать людей':
-                                                self.sender(id,
-                                                            'Переходим на поиск людей, Для общего поиска людей выберите '
-                                                            'кого ищем \n ',
-                                                            self.menu_sex_key_board())
-                                                self.id_user_bot.mode = 'menu_sex'
+                                    if msg == 'следующий контакт':
+
+                                        # достаем текущий шаг
+                                        step_now = run_db.get_step_ids_session(user_id_saved)
+
+                                        try:
+                                            self.sender(id, f'{list_related[step_now]} \n ',
+                                                        self.menu_check_db_key_board())
+                                            run_db.update_user_mode(user_id_saved, 'db_check')
+
+                                            run_db.update_step_session(user_id_saved, step_now + 1)
+                                        except:
+                                            self.sender(id, 'Больше нет людей в базе, напишите start \n ',
+                                                        self.clear_key_board())
+                                            # обязательно обнуляем и счетчик и статус. все сначало через старт
+                                            run_db.update_user_mode(user_id_saved, 'db_check')
+
+
+                                    if msg == 'удалить контакт':
+                                        # достаем текущий шаг
+                                        step_now = run_db.get_step_ids_session(user_id_saved)
+
+                                        self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
+                                                    self.menu_check_db_key_board())
+                                        # помечаем пользователя удаленным
+                                        run_db.mark_deleted_from_selected(user_id_saved, related_db_id_list[step_now-1])
+                                        run_db.update_user_mode(user_id_saved, 'db_check')
+
+
+                                    if msg == 'искать людей':
+                                        self.sender(id,
+                                                    'Переходим на поиск людей, Для общего поиска людей выберите '
+                                                    'кого ищем \n ',
+                                                    self.menu_sex_key_board())
+                                        run_db.update_user_mode(user_id_saved, 'menu_sex')
+
+
 
                                     ## Логика на 3 пункт бота ###
 
@@ -334,8 +355,17 @@ class Bot:
                                             # проверка если человек в бане
                                             list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
 
-                                            if result_next in list_ban:
-                                                print('в бане')
+                                            # проверка если уже добавлен в базу
+                                            check_id_in_related_already = run_db.find_using_users_selected(user_id_saved)
+                                            banned_already_in_related = []
+                                            # достаем vk_id связанных людей через id в таблице БД
+                                            for item in check_id_in_related_already:
+                                                result = run_db.search_selected_from_db_using_id(item)
+                                                banned_already_in_related.append(result['vk_id'][2:])
+
+
+                                            if result_next in list_ban or result_next in banned_already_in_related:
+                                                print('в бане или уже добавлен в БД')
                                                 # добавляем offset чтобы пропустить его и идем дальше по людям
 
                                             else:
@@ -346,6 +376,7 @@ class Bot:
                                                             self.menu_find_people_key_board())
                                                 run_db.update_user_mode(user_id_saved, 'girl_find_run')
                                                 while_true = False
+
 
                                 if run_db.get_user_mode(user_id_saved) == 'girl_find_run':
                                     if msg == 'следующий человек':
@@ -361,27 +392,48 @@ class Bot:
                                             # достаем текущий шаг
                                             step_now = run_db.get_step_ids_session(user_id_saved)
 
-                                            # берем человека из списка согласну step
-                                            result_next = result_2[step_now]
-
-                                            # сразу увеличиваем step
-                                            run_db.update_step_session(user_id_saved, step_now + 1)
-
-                                            # проверка если человек в бане
-                                            list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
-
-                                            if result_next in list_ban:
-                                                print('в бане')
-                                                # добавляем offset чтобы пропустить его и идем дальше по людям
-
-                                            else:
-                                                result = user_need.get_user_info(result_next)
-                                                self.sender(id,
-                                                            f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_next)}',
-                                                            self.menu_find_people_key_board())
-                                                run_db.update_user_mode(user_id_saved, 'girl_find_run')
+                                            # если достигли конца списка
+                                            if step_now >= len(result_2):
+                                                self.sender(id, 'Что будем делать? Наберите цифру: \n'
+                                                                '1- Посмотреть добавленные контакты \n'
+                                                                '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                                                '3- Общий поиск людей(указать пол, возраст, город) \n'
+                                                                '\n'
+                                                                '\n'
+                                                                ' ', self.clear_key_board())
+                                                run_db.update_user_mode(user_id_saved, 'start')
                                                 while_true = False
+                                            else:
+                                                # берем человека из списка согласно step
+                                                result_next = result_2[step_now]
+
+                                                # сразу увеличиваем step
+                                                run_db.update_step_session(user_id_saved, step_now + 1)
+
+                                                # проверка если человек в бане
+                                                list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
+                                                # проверка если уже добавлен в базу
+                                                check_id_in_related_already = run_db.find_using_users_selected(user_id_saved)
+                                                banned_already_in_related = []
+                                                # достаем vk_id связанных людей через id в таблице БД
+                                                for item in check_id_in_related_already:
+                                                    result = run_db.search_selected_from_db_using_id(item)
+                                                    banned_already_in_related.append(result['vk_id'][2:])
+
+
+                                                if result_next in list_ban or result_next in banned_already_in_related:
+                                                    print('в бане или уже добавлен в БД')
+                                                    # добавляем offset чтобы пропустить его и идем дальше по людям
+
+                                                else:
+                                                    result = user_need.get_user_info(result_next)
+                                                    self.sender(id,
+                                                                f'{result["name"]}  {result["last_name"]} \n'
+                                                                f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_next)}',
+                                                                self.menu_find_people_key_board())
+                                                    run_db.update_user_mode(user_id_saved, 'girl_find_run')
+                                                    while_true = False
+
 
                                     # заносим в БАН в БД, по vk id (причем сохраняется там без приписки id - id232423)
                                     if msg == 'больше не показывать':
@@ -509,27 +561,39 @@ class Bot:
                                             # достаем текущий шаг
                                             step_now = run_db.get_step_ids_session(user_id_saved)
 
-                                            # берем человека из списка согласну step
-                                            result_next = result_2[step_now]
-
-                                            # сразу увеличиваем step
-                                            run_db.update_step_session(user_id_saved, step_now + 1)
-
-                                            # проверка если человек в бане
-                                            list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
-
-                                            if result_next in list_ban:
-                                                print('в бане')
-                                                # добавляем offset чтобы пропустить его и идем дальше по людям
-
-                                            else:
-                                                result = user_need.get_user_info(result_next)
-                                                self.sender(id,
-                                                            f'{result["name"]}  {result["last_name"]} \n'
-                                                            f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_next)}',
-                                                            self.menu_find_people_key_board())
-                                                run_db.update_user_mode(user_id_saved, 'boy_find_run')
+                                            # если достигли конца списка
+                                            if step_now >= len(result_2):
+                                                self.sender(id, 'Что будем делать? Наберите цифру: \n'
+                                                                '1- Посмотреть добавленные контакты \n'
+                                                                '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                                                '3- Общий поиск людей(указать пол, возраст, город) \n'
+                                                                '\n'
+                                                                '\n'
+                                                                ' ', self.clear_key_board())
+                                                run_db.update_user_mode(user_id_saved, 'start')
                                                 while_true = False
+                                            else:
+                                                # берем человека из списка согласну step
+                                                result_next = result_2[step_now]
+
+                                                # сразу увеличиваем step
+                                                run_db.update_step_session(user_id_saved, step_now + 1)
+
+                                                # проверка если человек в бане
+                                                list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
+
+                                                if result_next in list_ban:
+                                                    print('в бане')
+                                                    # добавляем offset чтобы пропустить его и идем дальше по людям
+
+                                                else:
+                                                    result = user_need.get_user_info(result_next)
+                                                    self.sender(id,
+                                                                f'{result["name"]}  {result["last_name"]} \n'
+                                                                f' {some_choice.send_info_in_bot(self.id_user_bot.id, result_next)}',
+                                                                self.menu_find_people_key_board())
+                                                    run_db.update_user_mode(user_id_saved, 'boy_find_run')
+                                                    while_true = False
 
                                     # заносим в БАН в БД, по vk id (причем сохраняется там без приписки id - id232423)
                                     if msg == 'больше не показывать':
