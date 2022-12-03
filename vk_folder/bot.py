@@ -85,6 +85,7 @@ class Bot:
         ])
         return menu_check_db
 
+
     # cамая главная часть, работа бота
     def start_run(self):
         for event in self.longpoll.listen():
@@ -201,13 +202,12 @@ class Bot:
                                     if msg == 'удалить контакт':
                                         # достаем текущий шаг
                                         step_now = run_db.get_step_ids_session(user_id_saved)
+                                        self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
+                                                    self.menu_check_db_key_board())
+                                        # помечаем пользователя удаленным
+                                        run_db.mark_deleted_from_selected(user_id_saved, related_db_id_list[step_now-1])
+                                        run_db.update_user_mode(user_id_saved, 'db_check')
 
-                                        if msg == 'удалить контакт':
-                                            self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
-                                                        self.menu_check_db_key_board())
-                                            # помечаем пользователя удаленным
-                                            run_db.mark_deleted_from_selected(user_id_saved, related_db_id_list[step_now-1])
-                                            user.mode = 'db_check'
 
                                     if msg == 'искать людей':
                                         self.sender(id,
