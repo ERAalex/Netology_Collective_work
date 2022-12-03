@@ -1,41 +1,26 @@
-import random, vk_api
-from vk_api.keyboard import VkKeyboardColor, VkKeyboard
-from vk_api.utils import get_random_id
+import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 import json
 from vk_folder.some_frases import iniciate_messages
 # from db_mongo import find_document, series_collection, insert_document
 import os
-from pprint import pprint
-
 from DB.db import run_db
-
 from vk_folder.people_search import User_vk, some_choice, user_need
 
 token_user = os.getenv('token_user')
 vk_token = os.getenv('token')
 vk_s = vk_api.VkApi(token=vk_token)
 session_api = vk_s.get_api()
-
 people_search = User_vk(token_user)
 
 
 class User:
-    def __init__(self, id, mode):
+    def __init__(self, id):
         self.id = id
-
         self.id_in_db = 0
-        self.count_in_db = 0
-
-        self.name = ''
-        self.age = -1
-        self.related_finded = {}
-        self.offset_vk = 0
-
 
 users_class = []
 check = []
-
 
 class Bot:
     # начальные параметры для работы бота
@@ -44,7 +29,7 @@ class Bot:
         self.vk_session = vk_api.VkApi(token=token)
         self.longpoll = VkLongPoll(self.vk_session)
         self.vk = self.vk_session.get_api()
-        user = User(100, 'some')
+        user = User(100)
         self.users = [user]
 
         self.id_user_bot = ''
@@ -112,14 +97,14 @@ class Bot:
                     # для начала првоеряем если список объектов класса Юзер не равен 0, тк. при запуске бота он = 0
                     # заполним его сразу первым юзером
                     if len(users_class) == 0:
-                        self.id_user_bot = User(id, '')
+                        self.id_user_bot = User(id)
                         users_class.append(self.id_user_bot)
 
                     # дальше проверяем есть такой объект-юзер или нет, если новый человек заносим его как объект в базу
                     # для использования методов и сохранения его персональных данных на момент пользования ботом
                     for item in users_class:
                         if item.id != id:
-                            self.id_user_bot = User(id, '')
+                            self.id_user_bot = User(id)
                             users_class.append(self.id_user_bot)
                         else:
                             pass
@@ -130,16 +115,11 @@ class Bot:
 
                     # проверяем есть ли такой пользователь в базе и обновляем
                     data = people_search.get_user_info(id)
-
                     run_db.add_user(data)
 
                     # Достаем и сохраняем id в БД текущего пользователя. Внимание это не ID vk!!
                     user_find_from_db = run_db.search_user_from_db('id' + str(id))
-                    # self.id_user_bot.id_in_db = user_find_from_db['id']
-                    # print(self.id_user_bot.id_in_db)
-
                     user_id_saved = user_find_from_db['id']
-
                     msg = event.text.lower()
 
                     if msg in iniciate_messages:
@@ -160,16 +140,12 @@ class Bot:
 
                         # сохраняем в БД статус
                         run_db.add_user_mode(user_id_saved, 'start')
-                        # self.id_user_bot.mode = 'start'
-
-
 
                     else:
                         for user in users_class:
                             if user.id == id:
-                                ##  Логика на Старт меню
 
-                                # if self.id_user_bot.mode == 'start':
+                                ##  Логика на Старт меню
                                 if run_db.get_user_mode(user_id_saved) == 'start':
 
                                     if str(msg) == '1':
@@ -183,13 +159,6 @@ class Bot:
                                         self.sender(id, 'Для общего поиска людей выберите кого ищем \n ',
                                                     self.menu_sex_key_board())
                                         run_db.update_user_mode(user_id_saved, 'menu_sex')
-
-
-
-
-
-
-                                        ##  Логика на 1 пункт
 
 
                                     ##  Логика на 1 пункт
@@ -214,13 +183,9 @@ class Bot:
                                                                     {result_realted["last_name"]}
                                                                     https://vk.com/{result_realted["vk_id"]}''')
 
-
-
                                     if msg == 'следующий контакт':
-
                                         # достаем текущий шаг
                                         step_now = run_db.get_step_ids_session(user_id_saved)
-
                                         try:
                                             self.sender(id, f'{list_related[step_now]} \n ',
                                                         self.menu_check_db_key_board())
@@ -233,7 +198,6 @@ class Bot:
                                             # обязательно обнуляем и счетчик и статус. все сначало через старт
                                             run_db.update_user_mode(user_id_saved, 'db_check')
 
-
                                     if msg == 'удалить контакт':
                                         # достаем текущий шаг
                                         step_now = run_db.get_step_ids_session(user_id_saved)
@@ -245,7 +209,6 @@ class Bot:
                                             run_db.mark_deleted_from_selected(user_id_saved, related_db_id_list[step_now-1])
                                             user.mode = 'db_check'
 
-
                                     if msg == 'искать людей':
                                         self.sender(id,
                                                     'Переходим на поиск людей, Для общего поиска людей выберите '
@@ -254,9 +217,7 @@ class Bot:
                                         run_db.update_user_mode(user_id_saved, 'menu_sex')
 
 
-
                                     ## Логика на 3 пункт бота ###
-
                                 elif run_db.get_user_mode(user_id_saved) == 'menu_sex':
                                     # elif self.id_user_bot.mode == 'menu_sex':
                                     if msg == 'девушку':
@@ -271,9 +232,8 @@ class Bot:
                                         run_db.update_user_mode(user_id_saved, 'boy_find_age')
                                         break
 
-                                        # меню выбора с девушкой
+                                # меню выбора с девушкой
                                 if run_db.get_user_mode(user_id_saved) == 'girl_find_age':
-                                    # if self.id_user_bot.mode == 'girl_find_age':
                                     # обрабатываем не корректный ввод пользователя + нам надо увериться, что это
                                     # наше сообщение, оно должно быть числом
                                     try:
@@ -283,7 +243,6 @@ class Bot:
 
                                             # сохраняем в БД выбор пользователя лет девушке
                                             run_db.add_user_choise_age(user_id_saved, girl_decision_age)
-                                            # self.id_user_bot.param_persons['age_girl'] = int(girl_decision_age)
 
                                             self.sender(id, 'напишите город в котором искать, мы начнем поиск \n'
                                                             'это может занять пару минут, что значительно ускорит \n'
@@ -291,7 +250,6 @@ class Bot:
                                                         self.clear_key_board())
                                             run_db.update_user_mode(user_id_saved, 'girl_find_city')
                                             break
-
                                     except:
                                         self.sender(id, 'вы не ввели число, повторите ввод возраста девушки',
                                                     self.clear_key_board())
@@ -299,43 +257,33 @@ class Bot:
 
                                 # тут функция с выводом девушки
                                 if run_db.get_user_mode(user_id_saved) == 'girl_find_city':
-
                                     if msg:
                                         # сохраняем выбор города в БД Юзер сессии
                                         run_db.add_user_choise_city(user_id_saved, msg)
-
                                         # сразу готовим count в виде step
                                         run_db.update_step_session(user_id_saved, 0)
-
                                         # парсим людей получаем список где человек 100 сохраняем
                                         resul_find_people = some_choice.get_all_available_people \
                                             (1, run_db.get_users_choise_age(user_id_saved),
                                              run_db.get_users_choise_city(user_id_saved))
-
                                         # сохраняем в базу в Юзер Сессион
                                         run_db.add_user_choise_ids(user_id_saved, resul_find_people)
                                         # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
 
                                         while_true = True
                                         while while_true == True:
-
                                             # берем из базы данных строку с пользователями
                                             result_1 = run_db.get_users_choise_ids(user_id_saved)
                                             # преобразуем в список
                                             result_2 = result_1.split(',')
-
                                             # достаем текущий шаг
                                             step_now = run_db.get_step_ids_session(user_id_saved)
-
                                             # берем человека из списка согласну step
                                             result_next = result_2[step_now]
-
                                             # сразу увеличиваем step
                                             run_db.update_step_session(user_id_saved, step_now + 1)
-
                                             # проверка если человек в бане
                                             list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
-
                                             # проверка если уже добавлен в базу
                                             check_id_in_related_already = run_db.find_using_users_selected(user_id_saved)
                                             banned_already_in_related = []
@@ -348,7 +296,6 @@ class Bot:
                                             if result_next in list_ban or result_next in banned_already_in_related:
                                                 print('в бане или уже добавлен в БД')
                                                 # добавляем offset чтобы пропустить его и идем дальше по людям
-
                                             else:
                                                 result = user_need.get_user_info(result_next)
                                                 self.sender(id,
@@ -358,21 +305,17 @@ class Bot:
                                                 run_db.update_user_mode(user_id_saved, 'girl_find_run')
                                                 while_true = False
 
-
                                 if run_db.get_user_mode(user_id_saved) == 'girl_find_run':
                                     if msg == 'следующий человек':
 
                                         while_true = True
                                         while while_true == True:
-
                                             # берем из базы данных строку с пользователями
                                             result_1 = run_db.get_users_choise_ids(user_id_saved)
                                             # преобразуем в список
                                             result_2 = result_1.split(',')
-
                                             # достаем текущий шаг
                                             step_now = run_db.get_step_ids_session(user_id_saved)
-
                                             # если достигли конца списка
                                             if step_now >= len(result_2):
                                                 self.sender(id, 'Что будем делать? Наберите цифру: \n'
@@ -387,10 +330,8 @@ class Bot:
                                             else:
                                                 # берем человека из списка согласно step
                                                 result_next = result_2[step_now]
-
                                                 # сразу увеличиваем step
                                                 run_db.update_step_session(user_id_saved, step_now + 1)
-
                                                 # проверка если человек в бане
                                                 list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
                                                 # проверка если уже добавлен в базу
@@ -401,11 +342,9 @@ class Bot:
                                                     result = run_db.search_selected_from_db_using_id(item)
                                                     banned_already_in_related.append(result['vk_id'][2:])
 
-
                                                 if result_next in list_ban or result_next in banned_already_in_related:
                                                     print('в бане или уже добавлен в БД')
                                                     # добавляем offset чтобы пропустить его и идем дальше по людям
-
                                                 else:
                                                     result = user_need.get_user_info(result_next)
                                                     self.sender(id,
@@ -415,7 +354,6 @@ class Bot:
                                                     run_db.update_user_mode(user_id_saved, 'girl_find_run')
                                                     while_true = False
 
-
                                     # заносим в БАН в БД, по vk id (причем сохраняется там без приписки id - id232423)
                                     if msg == 'больше не показывать':
                                         # заносим в бан
@@ -423,7 +361,6 @@ class Bot:
                                         result_2 = result_1.split(',')
                                         step_now = run_db.get_step_ids_session(user_id_saved)
                                         result_next = result_2[step_now - 1]
-
                                         run_db.add_banned(user_id_saved, result_next)
 
                                         self.sender(id, 'Данный пользователь больше не будет появляться в рекомендациях'
@@ -442,7 +379,6 @@ class Bot:
                                         print('человек добавлен')
                                         # ищем id нашего релайтед в базе
                                         info = run_db.search_selected_from_db('id' + str(result_next))
-
                                         run_db.mark_users_selected(user_id_saved, info['id'])
                                         print('связь между юзером и релайтед создана')
 
@@ -461,7 +397,6 @@ class Bot:
                                         decision = int(msg)
                                         if decision:
                                             boy_decision_age = msg
-
                                             # сохраняем в БД выбор пользователя лет девушке
                                             run_db.add_user_choise_age(user_id_saved, boy_decision_age)
 
@@ -476,16 +411,13 @@ class Bot:
                                                     self.clear_key_board())
                                         run_db.update_user_mode(user_id_saved, 'boy_find_age')
 
-                                # тут функция с выводом девушки
+                                # тут функция с выводом парня
                                 if run_db.get_user_mode(user_id_saved) == 'boy_find_city':
-
                                     if msg:
                                         # сохраняем выбор города в БД Юзер сессии
                                         run_db.add_user_choise_city(user_id_saved, msg)
-
                                         # сразу готовим count в виде step
                                         run_db.update_step_session(user_id_saved, 0)
-
                                         # парсим людей получаем список где человек 100 сохраняем
                                         resul_find_people = some_choice.get_all_available_people \
                                             (2, run_db.get_users_choise_age(user_id_saved),
@@ -497,28 +429,22 @@ class Bot:
 
                                         while_true = True
                                         while while_true == True:
-
                                             # берем из базы данных строку с пользователями
                                             result_1 = run_db.get_users_choise_ids(user_id_saved)
                                             # преобразуем в список
                                             result_2 = result_1.split(',')
-
                                             # достаем текущий шаг
                                             step_now = run_db.get_step_ids_session(user_id_saved)
-
                                             # берем человека из списка согласну step
                                             result_next = result_2[step_now]
-
                                             # сразу увеличиваем step
                                             run_db.update_step_session(user_id_saved, step_now + 1)
-
                                             # проверка если человек в бане
                                             list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
 
                                             if result_next in list_ban:
                                                 print('в бане')
                                                 # добавляем offset чтобы пропустить его и идем дальше по людям
-
                                             else:
                                                 result = user_need.get_user_info(result_next)
                                                 self.sender(id,
@@ -533,15 +459,12 @@ class Bot:
 
                                         while_true = True
                                         while while_true == True:
-
                                             # берем из базы данных строку с пользователями
                                             result_1 = run_db.get_users_choise_ids(user_id_saved)
                                             # преобразуем в список
                                             result_2 = result_1.split(',')
-
                                             # достаем текущий шаг
                                             step_now = run_db.get_step_ids_session(user_id_saved)
-
                                             # если достигли конца списка
                                             if step_now >= len(result_2):
                                                 self.sender(id, 'Что будем делать? Наберите цифру: \n'
@@ -556,17 +479,14 @@ class Bot:
                                             else:
                                                 # берем человека из списка согласну step
                                                 result_next = result_2[step_now]
-
                                                 # сразу увеличиваем step
                                                 run_db.update_step_session(user_id_saved, step_now + 1)
-
                                                 # проверка если человек в бане
                                                 list_ban = run_db.get_all_vk_id_of_banned(user_id_saved)
 
                                                 if result_next in list_ban:
                                                     print('в бане')
                                                     # добавляем offset чтобы пропустить его и идем дальше по людям
-
                                                 else:
                                                     result = user_need.get_user_info(result_next)
                                                     self.sender(id,
@@ -583,7 +503,6 @@ class Bot:
                                         result_2 = result_1.split(',')
                                         step_now = run_db.get_step_ids_session(user_id_saved)
                                         result_next = result_2[step_now]
-
                                         run_db.add_banned(user_id_saved, result_next)
 
                                         self.sender(id, 'Данный пользователь больше не будет появляться в рекомендациях'
@@ -596,7 +515,6 @@ class Bot:
                                         step_now = run_db.get_step_ids_session(user_id_saved)
                                         # это наш vk_id текущего человека
                                         result_next = result_2[step_now]
-
                                         data_people_selected = some_choice.get_rel_people_by_id(result_next)
                                         run_db.add_selected(data_people_selected)
                                         print('человек добавлен')
