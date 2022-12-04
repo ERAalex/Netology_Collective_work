@@ -533,13 +533,13 @@ class Bot:
                                         result_2 = result_1.split(',')
                                         step_now = run_db.get_step_ids_session(user_id_saved)
                                         # это наш vk_id текущего человека
-                                        result_next = result_2[step_now]
+                                        result_next = result_2[step_now - 1]
+
                                         data_people_selected = some_choice.get_rel_people_by_id(result_next)
                                         run_db.add_selected(data_people_selected)
                                         print('человек добавлен')
                                         # ищем id нашего релайтед в базе
                                         info = run_db.search_selected_from_db('id' + str(result_next))
-
                                         run_db.mark_users_selected(user_id_saved, info['id'])
                                         print('связь между юзером и релайтед создана')
 
