@@ -322,7 +322,7 @@ class vk_choice:
                 photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
                 if len(photos) >=3:
                     if 'city' in el and el['city']['title'] == name_city.title():
-                        filtred_people.append(str(el['id']))
+                        filtred_people.append(el)
                     else:
                         # i+=1
                         # print('нет города в описании', i)
@@ -337,11 +337,7 @@ class vk_choice:
                 # i+=1
                 # print('закрыт профиль', i)
                 pass
-        filtred_people = [','.join(filtred_people)]
-        result = ''
-        for item in filtred_people:
-            result = item
-        return result
+        return filtred_people
 
 
     def get_top_3_foto(self, id):
@@ -407,7 +403,7 @@ class vk_choice:
 
 
 # не удалять строчки внизу, используются
-some_choice = vk_choice(os.getenv('token_user'), os.getenv('token_community'))
+some_choice = vk_choice(os.getenv('token_user'), os.getenv('token'))
 user_need = User_vk(os.getenv('token_user'))
 
 # some_choice = vk_choice('')
@@ -427,6 +423,6 @@ user_need = User_vk(os.getenv('token_user'))
 
 # print(some_choice.get_all_available_people(1))
 
-# data = some_choice.get_all_available_people_2(1, 30, 'москва')
+# data = some_choice.get_all_available_people(1, 30, 'москва')
 # pprint(data)
 
