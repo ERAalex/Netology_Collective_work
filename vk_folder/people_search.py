@@ -313,7 +313,7 @@ class vk_choice:
                                                     has_photo=1, count=100, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
                                                            'sex, books, bdate, birth_year, activities, '
-                                                           'interests, education, movies, games')
+                                                           'interests, education, movies, games, music')
 
         filtred_people = []
         # Список людей не в блэклисте, у которых есть фото,
@@ -322,7 +322,20 @@ class vk_choice:
                 photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
                 if len(photos) >=3:
                     if 'city' in el and el['city']['title'] == name_city.title():
+                        if 'books' not in el:
+                            el['books'] == ''
+                        if 'activities' not in el:
+                            el['activities'] == ''
+                        if 'music' not in el:
+                            el['music'] == ''
+                        if 'movies' not in el:
+                            el['movies'] == ''
+                        if 'interests' not in el:
+                            el['interests'] == ''
+                        if 'games' not in el:
+                            el['games'] == ''
                         filtred_people.append(el)
+
                     else:
                         # i+=1
                         # print('нет города в описании', i)
@@ -423,6 +436,6 @@ user_need = User_vk(os.getenv('token_user'))
 
 # print(some_choice.get_all_available_people(1))
 
-# data = some_choice.get_all_available_people(1, 30, 'москва')
-# pprint(data)
+data = some_choice.get_all_available_people(1, 30, 'москва')
+pprint(data)
 
