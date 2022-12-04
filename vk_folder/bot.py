@@ -9,6 +9,10 @@ from fuzzywuzzy import fuzz
 from DB.db import run_db
 from vk_folder.people_search import User_vk, some_choice, user_need
 
+import os
+import urllib.request
+from threading import Thread
+
 token_user = os.getenv('token_user')
 vk_token = os.getenv('token')
 vk_s = vk_api.VkApi(token=vk_token)
@@ -27,6 +31,8 @@ check = []
 class Bot:
     # начальные параметры для работы бота
     def __init__(self, token):
+        """Инициализация потока"""
+
         self.token = token
         self.vk_session = vk_api.VkApi(token=token)
         self.longpoll = VkLongPoll(self.vk_session)
@@ -110,6 +116,7 @@ class Bot:
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW:
                 if event.to_me:
+
 
                     id = event.user_id
                     self.id_user = id
@@ -548,6 +555,7 @@ class Bot:
                                                         'в Базу данных \n ', self.menu_find_people_key_board())
 
                                         run_db.update_user_mode(user_id_saved, 'boy_find_run')
+
 
 
 bot_start = Bot(vk_token)
