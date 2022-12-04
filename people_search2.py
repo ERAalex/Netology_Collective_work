@@ -4,6 +4,7 @@ from pprint import pprint
 import datetime
 from sqlalchemy import select, insert
 from random import randint
+from fuzzywuzzy import fuzz
 from DB.db import run_db
 # from DB.models import Users
 # from DB.db import DB, CONNECT, run_db
@@ -14,6 +15,9 @@ class User_vk:
         self.vk_token_user = vk_token
         self.vk_u = vk_api.VkApi(token=vk_token)
         self.session_api = self.vk_u.get_api()
+
+
+
 
     def get_user_info(self, vk_id):
         '''
@@ -93,6 +97,8 @@ class User_vk:
 # a = User_vk(os.getenv('token'))
 # print(a.get_user_info('71719671')
 
+
+
 #список людей, из которых делать выборку
 # wishing_city = input('Введите город поиска: ')
 # wishing_gender = input('Введите пол собеседника(м/ж): ')
@@ -109,6 +115,7 @@ class vk_choice:
         self.session_api = self.vk_s.get_api()
         self.count = 0
 
+
     # получаем на вход название города, возвращаем его id
     def get_city_id(self, name_city):
         '''на вход получаем название города, на выход даем его номер нужный для поиска по city = ...'''
@@ -124,6 +131,9 @@ class vk_choice:
         result = self.session_api_user.utils.resolveScreenName(screen_name=screen_n)
         result_obj_id = result['object_id']
         return result_obj_id
+
+
+
 
 
     def get_rel_people_by_id(self, id):
@@ -210,6 +220,9 @@ class vk_choice:
                 people_dict['photo'] = ['аккаунт закрыт для выборки фото']
 
             return people_dict
+
+
+
 
 
     def get_all_available_people_2(self, gender, age, name_city):
@@ -304,11 +317,233 @@ class vk_choice:
                     self.count += 1
 
 
+##############################################################################################################
+    def get_all_available_people_3(self, gender, name_city):
+            '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
+            while True:
+                city = vk_choice.get_city_id(self, name_city)
+                people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
+                                                            sex=gender, offset=self.count,
+                                                            blacklisted_by_me=0,
+                                                            has_photo=1, count=100, city_id=city,
+                                                            fields='domain, relation, personal, city, about, '
+                                                                'sex, books, bdate, birth_year, activities, '
+                                                                'interests, education, movies, games')
+
+                filtred_people = []
+                # Список людей не в блэклисте, у которых есть фото,
+                for el in people['items']:
+                    try:
+                        photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
+                        if len(photos) >=3:
+                            if 'city' in el and el['city']['title'] == name_city.title():
+                                people_dict = {}
+                                filtred_people.append(people_dict)
+                                people_dict['city'] = el['city']['title']
+
+                                if el['sex'] == 1:
+                                    people_dict['gender'] = 'ж'
+                                else:
+                                    people_dict['gender'] = 'м'
+                                if 'langs' in el:
+                                    people_dict['languages'] = el['personal']['langs']
+                                else:
+                                    people_dict['languages'] = ''
+
+                                people_dict['name'] = el['first_name']
+                                people_dict['last_name'] = el['last_name']
+                                people_dict['vk_id'] = photos[0]['owner_id']
+                                # people_dict['vk_id'] = el["domain"]
+                                if 'relation' in el:
+                                    people_dict['relationship'] = el['relation']
+                                else:
+                                    people_dict['relationship'] = 0
+
+                                # 1 — не женат / не замужем;
+                                # 2 — есть друг / есть подруга;
+                                # 3 — помолвлен / помолвлена;
+                                # 4 — женат / замужем;
+                                # 5 — всё сложно;
+                                # 6 — в активном поиске;
+                                # 7 — влюблён / влюблена;
+                                # 8 — в гражданском браке;
+                                # 0 — не указано.
+
+                                if 'bdate' in el:
+                                    people_dict['b_day'] = el['bdate']
+                                else:
+                                    people_dict['b_day'] = ''
+                                if 'activities' in el:
+                                    people_dict['activities'] = el['activities']
+                                else:
+                                    people_dict['activities'] = ''
+                                if 'interests' in el:
+                                    people_dict['interests'] = el['interests']
+                                else:
+                                    people_dict['interests'] = ''
+                                if 'games' in el:
+                                    people_dict['games'] = el['games']
+                                else:
+                                    people_dict['games'] = ''
+                                if 'movies' in el:
+                                    people_dict['movies'] = el['movies']
+                                else:
+                                    people_dict['movies'] = ''
+                                if filtred_people != []:
+                                    self.count += 1
+                                    return filtred_people
+                                else:
+                                    self.count += 1
+                            else:
+                                # i+=1
+                                # print('нет города в описании', i)
+                                self.count += 1
+
+                        else:
+                            # i+=1
+                            # print('меньше 3 фоток', i)
+                            self.count += 1
+
+                    except:
+                        # i+=1
+                        # print('закрыт профиль', i)
+                        self.count += 1
+
+    def get_rel_people_by_id_2(self, id):
+            people = self.session_api_user.users.get(user_ids=id,
+                                                        fields='domain, relation, personal, city, about, music, '
+                                                                            'sex, books,  bdate, birth_year, activities,'
+                                                                            'interests, education, games')
+
+            people_dict = {}
+            # Список людей не в блэклисте, у которых есть фото,
+
+            people_dict['vk_id'] = 'id' + str(id)
+
+            for el in people:
+                if el['sex'] == 1:
+                    people_dict['gender'] = 'ж'
+                else:
+                    people_dict['gender'] = 'м'
+
+                if 'city' in el:
+                    people_dict['city'] = el['city']['title']
+                else:
+                    people_dict['city'] = ''
+                if 'langs' in el:
+                    people_dict['language'] = el['personal']['langs']
+                else:
+                    people_dict['language'] = ''
+
+                people_dict['name'] = el['first_name']
+                people_dict['last_name'] = el['last_name']
+
+                if 'relation' in el:
+                    people_dict['relations'] = el['relation']
+                else:
+                    people_dict['relations'] = 0
+
+                # 1 — не женат / не замужем;
+                # 2 — есть друг / есть подруга;
+                # 3 — помолвлен / помолвлена;
+                # 4 — женат / замужем;
+                # 5 — всё сложно;
+                # 6 — в активном поиске;
+                # 7 — влюблён / влюблена;
+                # 8 — в гражданском браке;
+                # 0 — не указано.
+
+                if 'bdate' in el:
+                    people_dict['b_day'] = el['bdate']
+                else:
+                    people_dict['b_day'] = ''
+                if 'activities' in el:
+                    people_dict['activities'] = el['activities']
+                else:
+                    people_dict['activities'] = ''
+                if 'interests' in el:
+                    people_dict['interests'] = el['interests']
+                else:
+                    people_dict['interests'] = ''
+                if 'games' in el:
+                    people_dict['games'] = el['games']
+                else:
+                    people_dict['games'] = ''
+                if 'age' in el:
+                    people_dict['age'] = el['age']
+                else:
+                    people_dict['age'] = 0
+                if 'movies' in el:
+                    people_dict['movies'] = el['movies']
+                else:
+                    people_dict['movies'] = ''
+                if 'books' in el:
+                    people_dict['books'] = el['books']
+                else:
+                    people_dict['books'] = ''
+                if 'music' in el:
+                    people_dict['music'] = el['music']
+                else:
+                    people_dict['music'] = ''
+
+                # через функцию ниже берем 3 лучших фото и кидаем в список.
+                try:
+                    people_dict['photo'] = self.get_top_3_foto(id)
+                except:
+                    people_dict['photo'] = ['аккаунт закрыт для выборки фото']
+
+                return people_dict
+
+
+    def get_all_available_people_4(self, gender, name_city):
+            '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
+            city = vk_choice.get_city_id(self, name_city)
+            people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
+                                                        sex=gender, offset=100,
+                                                        blacklisted_by_me=0,
+                                                        has_photo=1, count=100, city_id=city,
+                                                        fields='domain, relation, personal, city, about, '
+                                                            'sex, books, bdate, birth_year, activities, '
+                                                            'interests, education, movies, games')
+
+            filtred_people = []
+            # Список людей не в блэклисте, у которых есть фото,
+            for el in people['items']:
+                try:
+                    photos = self.session_api_user.photos.get(owner_id=el['id'], extended=1, album_id='profile')['items']
+                    if len(photos) >=3:
+                        if 'city' in el and el['city']['title'] == name_city.title():
+                            filtred_people.append(str(el['id']))
+                        else:
+                            # i+=1
+                            # print('нет города в описании', i)
+                            pass
+
+                    else:
+                        # i+=1
+                        # print('меньше 3 фоток', i)
+                        pass
+
+                except:
+                    # i+=1
+                    # print('закрыт профиль', i)
+                    pass
+            # filtred_people = [','.join(filtred_people)]
+            # result = ''
+            # for item in filtred_people:
+            #     result = item
+            return filtred_people
+
+
+
+############################################################################################
+
+
     def get_all_available_people(self, gender, age, name_city):
         '''интересный момент чем выше offset тем больше фото найдет. поэтому пусть будет максимум как count'''
         city = vk_choice.get_city_id(self, name_city)
         people = self.session_api_user.users.search(sort=0, blacklisted=0, is_closed=False,
-                                                    sex=gender, offset=100,
+                                                    sex=gender, offset=1,
                                                     blacklisted_by_me=0, birth_year=(2022 - int(age)),
                                                     has_photo=1, count=100, city_id=city,
                                                     fields='domain, relation, personal, city, about, '
@@ -342,6 +577,12 @@ class vk_choice:
         for item in filtred_people:
             result = item
         return result
+
+
+
+
+
+
 
 
     def get_top_3_foto(self, id):
@@ -406,12 +647,43 @@ class vk_choice:
 
 
 
+
+
+
 # не удалять строчки внизу, используются
 some_choice = vk_choice(os.getenv('token_user'), os.getenv('token_community'))
 user_need = User_vk(os.getenv('token_user'))
 
 # some_choice = vk_choice('')
 # user_need = User_vk('')
+
+
+result_id = some_choice.get_all_available_people_4(1, 'москва')
+result_list = []
+for i in result_id:
+     result_list.append(some_choice.get_rel_people_by_id_2(i))
+
+
+def get_match_rating(user_vk_id: str, found_persons: list):
+    '''На вход принимает список словарей!'''
+    data_user = run_db.search_user_from_db(user_vk_id)
+    filtered_persons = []
+    for person in found_persons:
+        count = 0
+        count += fuzz.token_sort_ratio(data_user['books'], person['books'])
+        count += fuzz.token_sort_ratio(data_user['activities'], person['activities'])
+        count += fuzz.token_sort_ratio(data_user['music'], person['music'])
+        count += fuzz.token_sort_ratio(data_user['movies'], person['movies'])
+        count += fuzz.token_sort_ratio(data_user['interests'], person['interests'])
+        count += fuzz.token_sort_ratio(data_user['games'], person['games'])
+        filtered_persons.append([count, person])
+    filtered_persons = sorted(filtered_persons, key=lambda x: x[0])
+    result = [person[1] for person in filtered_persons]
+    return result
+
+print(get_match_rating('id2246006', result_list))
+
+
 
 # user_dict = user_need.get_user_info(2246006)
 
