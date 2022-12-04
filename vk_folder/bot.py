@@ -5,6 +5,7 @@ from vk_folder.some_frases import iniciate_messages
 # from db_mongo import find_document, series_collection, insert_document
 import os
 from fuzzywuzzy import fuzz
+from pprint import pprint
 
 from DB.db import run_db
 from vk_folder.people_search import User_vk, some_choice, user_need
@@ -93,7 +94,7 @@ class Bot:
         ])
         return menu_check_db
 
-    def get_match_rating(user_vk_id: str, found_persons: list):
+    def get_match_rating(self, user_vk_id: str, found_persons: list):
         '''Функция анализа текста интересов между пользователем и найденными людьми!'''
         data_user = run_db.search_user_from_db(user_vk_id)
         filtered_persons = []
@@ -105,10 +106,12 @@ class Bot:
             count += fuzz.token_sort_ratio(data_user['movies'], person['movies'])
             count += fuzz.token_sort_ratio(data_user['interests'], person['interests'])
             count += fuzz.token_sort_ratio(data_user['games'], person['games'])
-            filtered_persons.append([count, person])
+            filtered_persons.append([count, person['id']])
         filtered_persons = sorted(filtered_persons, key=lambda x: x[0])
         result = [person[1] for person in filtered_persons]
-        return result
+        result_final = ",".join(map(str, result))
+        return result_final
+
 
 
     # cамая главная часть, работа бота
@@ -289,9 +292,14 @@ class Bot:
                                         # сразу готовим count в виде step
                                         run_db.update_step_session(user_id_saved, 0)
                                         # парсим людей получаем список где человек 100 сохраняем
-                                        resul_find_people = some_choice.get_all_available_people \
+                                        resul_find_people_2 = some_choice.get_all_available_people \
                                             (1, run_db.get_users_choise_age(user_id_saved),
                                              run_db.get_users_choise_city(user_id_saved))
+
+
+                                        resul_find_people = self.get_match_rating('id' + str(id), resul_find_people_2)
+
+
                                         # сохраняем в базу в Юзер Сессион
                                         run_db.add_user_choise_ids(user_id_saved, resul_find_people)
                                         # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
@@ -445,9 +453,11 @@ class Bot:
                                         # сразу готовим count в виде step
                                         run_db.update_step_session(user_id_saved, 0)
                                         # парсим людей получаем список где человек 100 сохраняем
-                                        resul_find_people = some_choice.get_all_available_people \
+                                        resul_find_people_2 = some_choice.get_all_available_people \
                                             (2, run_db.get_users_choise_age(user_id_saved),
                                              run_db.get_users_choise_city(user_id_saved))
+
+                                        resul_find_people = self.get_match_rating('id' + str(id), resul_find_people_2)
 
                                         # сохраняем в базу в Юзер Сессион
                                         run_db.add_user_choise_ids(user_id_saved, resul_find_people)

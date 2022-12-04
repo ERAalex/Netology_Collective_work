@@ -558,7 +558,7 @@ def start_run(event):
 for event in bot.longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW:
         if event.to_me:
-            Thread(target=start_run, args = (event, ), daemon=True).start()
+            Thread(target=start_run, args=(event, ), daemon=True).start()
 
 
 
