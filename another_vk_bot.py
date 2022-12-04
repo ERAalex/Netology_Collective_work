@@ -12,8 +12,8 @@ from DB.db import run_db
 
 from vk_folder.people_search import User_vk, some_choice, user_need
 
-token_user = ''
-vk_token = ''
+token_user = 'vk1.a.pTdx6L3TQKNoLOLKtfUCXwyiSq5BdtmuPCKfuGdien79FWcZV3h_erk0c9PQNZSWic8612MNG5k1TUvgvRaq7DuXCiCiKDw5x9mgynxnj0dOkeF0cmKNhvfNFnDjYjknZm3vQvbL8xCIMKOzR1XkaqTfUhRZ2x2TyK8caGW4iFa179eK3W9scP12RuOdBBgu'
+vk_token = 'vk1.a.TxawX-osea0OL1EzeFKsTuDuoG5cEKBm0DK9rXq99CkgfHdLIEYKOibsguLIiMpw_tTJzTBwGtI9mLWwWVvauxOYLnVyw6Lxjom8paI4D7w_Gmie4_BolseXfKRo5qlHFF57OXxbYL8VmKLVx6hd6H92gD9VDob8SEZdpVIlMKSh2L9zucC2Jm9MPfSn8lxdF63JFV9CC8NgbwfSCOos6A'
 vk_s = vk_api.VkApi(token=vk_token)
 session_api = vk_s.get_api()
 
@@ -221,7 +221,7 @@ class Bot:
 
                                     elif run_db.get_user_mode(user_id_saved) == 'db_check':
                                         # достаем id нашего юзера из базы данных
-                                        data_us_bd = run_db.search_user_from_db('id' + str(id))
+                                        data_us_bd = run_db.search_user_from_db('id' + str(self.id_user))
                                         # по нему ищем релайтед людей, и получаем список с id этих людей
                                         all_related = run_db.find_using_users_selected(data_us_bd['id'])
                                         # пробегаемся по списку, и ищем через функцию данные по id
@@ -237,6 +237,7 @@ class Bot:
                                                 list_related.append(f'''{result_realted["name"]}  
                                                                         {result_realted["last_name"]}
                                                                         https://vk.com/{result_realted["vk_id"]}''')
+                                        print(list_related)
 
 
 
@@ -244,12 +245,12 @@ class Bot:
                                             # так как у нас список с людьми, при каждом нажатии кнопки count +1, т.е.
                                             # выводим следующего в списке.
                                             try:
-                                                self.sender(id, f'{list_related[self.id_user_bot.count_in_db]} \n ',
+                                                self.sender(self.id_user, f'{list_related[self.id_user_bot.count_in_db]} \n ',
                                                             self.menu_check_db_key_board())
                                                 self.id_user_bot.mode = 'db_check'
                                                 self.id_user_bot.count_in_db += 1
                                             except:
-                                                self.sender(id, 'Больше нет людей в базе, напишите start \n ',
+                                                self.sender(self.id_user, 'Больше нет людей в базе, напишите start \n ',
                                                             self.clear_key_board())
                                                 # обязательно обнуляем и счетчик и статус. все сначало через старт
                                                 self.id_user_bot.mode = ''
@@ -258,7 +259,7 @@ class Bot:
 
 
                                             if msg == 'удалить контакт':
-                                                self.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
+                                                self.sender(self.id_user, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
                                                             self.menu_check_db_key_board())
                                                 # помечаем пользователя удаленным
                                                 run_db.mark_deleted_from_selected(self.user_id_in_db, related_db_id)
@@ -267,7 +268,7 @@ class Bot:
 
 
                                             if msg == 'искать людей':
-                                                self.sender(id, 'Переходим на поиск людей, Для общего поиска людей выберите '
+                                                self.sender(self.id_user, 'Переходим на поиск людей, Для общего поиска людей выберите '
                                                                 'кого ищем \n ',
                                                             self.menu_sex_key_board())
                                                 self.id_user_bot.mode = 'menu_sex'
