@@ -2,15 +2,15 @@ import sqlalchemy
 from psycopg2 import extras, connect
 from sqlalchemy.orm import sessionmaker
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from pprint import pprint
 
 from DB.models import Users, Selected, Photos, UsersSelected, Banned, DeletedSelected, create_tables, User_session
+from config import postgres_password, postgres_username
 
 
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
-        'username': 'postgres',
-        'password': 'nazca007', # поставить свой пароль от postgres
+        'username': postgres_username,
+        'password': postgres_password, # поставить свой пароль от postgres
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'

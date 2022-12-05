@@ -1,12 +1,7 @@
 import vk_api
-import os
-from pprint import pprint
-import datetime
-from sqlalchemy import select, insert
 from random import randint
-from DB.db import run_db
-# from DB.models import Users
-# from DB.db import DB, CONNECT, run_db
+
+from config import token_user, token_community
 
 
 class User_vk:
@@ -280,5 +275,5 @@ class vk_choice:
 
 
 
-some_choice = vk_choice(os.getenv('token_user'), os.getenv('token'))
-user_need = User_vk(os.getenv('token_user'))
+some_choice = vk_choice(token_user, token_community)
+user_need = User_vk(token_user)

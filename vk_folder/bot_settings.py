@@ -5,12 +5,10 @@ from fuzzywuzzy import fuzz
 
 from DB.db import run_db
 from vk_folder.people_search import User_vk
+from config import token_user, token_community
 
-import os
 
-token_user = os.getenv('token_user')
-vk_token = os.getenv('token')
-vk_s = vk_api.VkApi(token=vk_token)
+vk_s = vk_api.VkApi(token=token_community)
 session_api = vk_s.get_api()
 people_search = User_vk(token_user)
 
@@ -105,4 +103,4 @@ class Bot:
         return result_final
 
 
-bot = Bot(vk_token)
+bot = Bot(token_community)
