@@ -16,6 +16,8 @@
 * **пол**
 
 А так же отсортирует полученную выборку пользователей исходя из сопадений с вашими интересами, которые вы указали на своей странице ВКонтакте
+Бот связан с базой данных (**PostgreSQL**), что позволяет хранить информацию о пользователях, сохранять выбранные ими анкеты, удалять из выбранных или помещать анкеты в бан-лист, чтобы больеш не видеть в выдаче. 
+Так же реализованы сессии пользователей в базе данных, каждый пользователь может находиться на разных уровнях взаимодействия с ботом и ничего при этом не должно даже упасть.
 
 *бот написан в рамках учебной программы начинающими питонистами, так что будьте готовы ко всему, заглядывая внутрь.*
 
@@ -31,8 +33,22 @@ git clone git@github.com:ERAalex/Netology_Collective_work.git
 pip install -r requirements.txt
 ```
 ### :key: 
-3. Заполните авторизационные переменные
+3. Заполните авторизационные переменные в файле **settings.ini**:
+```python
+[VKONTAKTE]
+token_user = 
+token_community = 
+[DATABASE]
+username = 
+password =
+```
+> в переменную **token_user** кладем access token [как получить?](https://dzen.ru/media/kakprosto/kak-poluchit-accesstoken-vkontakte-5d72243d06cc4600ad8cb5f3 "Хорошоя инструкция")
 
+> в переменную **token_communit** кладем токен сообщества [как создать сообщество в ВК?](https://dzen.ru/media/propromotion/kak-sozdat-gruppu-vkontakte-poshagovaia-instrukciia-5cb5d73aeb4c5d00b3cb39d7 "Еще одна хорошая интструкция")
+
+> переменные в DATABASE заполняем тем же, чем вы логинитесь в **postrges**
+### :running:
+4. Запустите файл ```python main.py```
 ---------------------------------------
 
 <!-- Contact -->
@@ -43,3 +59,4 @@ Use this section to mention useful resources and libraries that you have used in
  - [Sergei Mochalov](https://github.com/n0iz3on3)
  - [Alex Espinosa](https://github.com/ERAalex)
  - [Aleksandra](https://github.com/TsaregorodtsevaA)
+
