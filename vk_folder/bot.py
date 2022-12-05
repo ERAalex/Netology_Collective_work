@@ -5,9 +5,14 @@ from vk_folder.some_frases import iniciate_messages
 # from db_mongo import find_document, series_collection, insert_document
 import os
 from fuzzywuzzy import fuzz
+from pprint import pprint
 
 from DB.db import run_db
 from vk_folder.people_search import User_vk, some_choice, user_need
+
+import os
+import urllib.request
+from threading import Thread
 
 token_user = os.getenv('token_user')
 vk_token = os.getenv('token')
@@ -27,6 +32,8 @@ check = []
 class Bot:
     # начальные параметры для работы бота
     def __init__(self, token):
+        """Инициализация потока"""
+
         self.token = token
         self.vk_session = vk_api.VkApi(token=token)
         self.longpoll = VkLongPoll(self.vk_session)
@@ -87,7 +94,7 @@ class Bot:
         ])
         return menu_check_db
 
-    def get_match_rating(user_vk_id: str, found_persons: list):
+    def get_match_rating(self, user_vk_id: str, found_persons: list):
         '''Функция анализа текста интересов между пользователем и найденными людьми!'''
         data_user = run_db.search_user_from_db(user_vk_id)
         filtered_persons = []
@@ -99,10 +106,12 @@ class Bot:
             count += fuzz.token_sort_ratio(data_user['movies'], person['movies'])
             count += fuzz.token_sort_ratio(data_user['interests'], person['interests'])
             count += fuzz.token_sort_ratio(data_user['games'], person['games'])
-            filtered_persons.append([count, person])
+            filtered_persons.append([count, person['id']])
         filtered_persons = sorted(filtered_persons, key=lambda x: x[0])
         result = [person[1] for person in filtered_persons]
-        return result
+        result_final = ",".join(map(str, result))
+        return result_final
+
 
 
     # cамая главная часть, работа бота
@@ -110,6 +119,7 @@ class Bot:
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW:
                 if event.to_me:
+
 
                     id = event.user_id
                     self.id_user = id
@@ -282,9 +292,14 @@ class Bot:
                                         # сразу готовим count в виде step
                                         run_db.update_step_session(user_id_saved, 0)
                                         # парсим людей получаем список где человек 100 сохраняем
-                                        resul_find_people = some_choice.get_all_available_people \
+                                        resul_find_people_2 = some_choice.get_all_available_people \
                                             (1, run_db.get_users_choise_age(user_id_saved),
                                              run_db.get_users_choise_city(user_id_saved))
+
+
+                                        resul_find_people = self.get_match_rating('id' + str(id), resul_find_people_2)
+
+
                                         # сохраняем в базу в Юзер Сессион
                                         run_db.add_user_choise_ids(user_id_saved, resul_find_people)
                                         # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
@@ -438,9 +453,11 @@ class Bot:
                                         # сразу готовим count в виде step
                                         run_db.update_step_session(user_id_saved, 0)
                                         # парсим людей получаем список где человек 100 сохраняем
-                                        resul_find_people = some_choice.get_all_available_people \
+                                        resul_find_people_2 = some_choice.get_all_available_people \
                                             (2, run_db.get_users_choise_age(user_id_saved),
                                              run_db.get_users_choise_city(user_id_saved))
+
+                                        resul_find_people = self.get_match_rating('id' + str(id), resul_find_people_2)
 
                                         # сохраняем в базу в Юзер Сессион
                                         run_db.add_user_choise_ids(user_id_saved, resul_find_people)
@@ -533,13 +550,13 @@ class Bot:
                                         result_2 = result_1.split(',')
                                         step_now = run_db.get_step_ids_session(user_id_saved)
                                         # это наш vk_id текущего человека
-                                        result_next = result_2[step_now]
+                                        result_next = result_2[step_now - 1]
+
                                         data_people_selected = some_choice.get_rel_people_by_id(result_next)
                                         run_db.add_selected(data_people_selected)
                                         print('человек добавлен')
                                         # ищем id нашего релайтед в базе
                                         info = run_db.search_selected_from_db('id' + str(result_next))
-
                                         run_db.mark_users_selected(user_id_saved, info['id'])
                                         print('связь между юзером и релайтед создана')
 
@@ -548,6 +565,7 @@ class Bot:
                                                         'в Базу данных \n ', self.menu_find_people_key_board())
 
                                         run_db.update_user_mode(user_id_saved, 'boy_find_run')
+
 
 
 bot_start = Bot(vk_token)
