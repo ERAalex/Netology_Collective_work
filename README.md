@@ -35,3 +35,11 @@ pip install -r requirements.txt
 
 ---------------------------------------
 
+<!-- Contact -->
+## :handshake: Contact
+
+Use this section to mention useful resources and libraries that you have used in your projects.
+
+ - [Sergei Mochalov](https://github.com/n0iz3on3)
+ - [Alex Espinosa](https://github.com/ERAalex)
+ - [Aleksandra](https://github.com/TsaregorodtsevaA)
