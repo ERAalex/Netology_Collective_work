@@ -55,11 +55,11 @@ password =
 
 <!-- Contact -->
 ## :handshake: Contact
-
+    
 You can find our profiles here and see our projects. Subscribe to Us
 
  - [Sergei Mochalov](https://github.com/n0iz3on3)
  - [Alex Espinosa](https://github.com/ERAalex)
- - [Aleksandra](https://github.com/TsaregorodtsevaA)
+ - [Aleksandra Tsaregorodtseva](https://github.com/TsaregorodtsevaA)
 
 
