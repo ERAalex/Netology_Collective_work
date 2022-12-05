@@ -1,4 +1,4 @@
-<h1 align="center">Hi there, we are Alex, Aleksandra, Sergei 
+<h1 align="center">Hi there, we are <font color=#008B8B> Alex </font>, <font color=#2E8B57>Aleksandra</font>, <font color=#8FBC8F>Sergei</font> 
 <img src="https://github.com/blackcater/blackcater/raw/main/images/Hi.gif" height="32"/></h1>
 <h3 align="center">Computer science students</h3>
 
@@ -56,7 +56,7 @@ password =
 <!-- Contact -->
 ## :handshake: Contact
 
-Use this section to mention useful resources and libraries that you have used in your projects.
+You can find our profiles here and see our projects. Subscribe to Us
 
  - [Sergei Mochalov](https://github.com/n0iz3on3)
  - [Alex Espinosa](https://github.com/ERAalex)
