@@ -29,6 +29,6 @@ git clone git@github.com:ERAalex/Netology_Collective_work.git
 pip install -r requirements.txt
 ```
 3. Заполните авторизационные переменные
-
+### :key: 
 ---------------------------------------
 
