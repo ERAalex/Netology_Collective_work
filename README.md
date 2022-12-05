@@ -1,4 +1,4 @@
-<h1 align="center">Hi there, we are Alex, Aleksandra, Sergei 
+<h1 align="center">Hi there, we are <font color=#008B8B> Alex </font>, <font color=#2E8B57>Aleksandra</font>, <font color=#8FBC8F>Sergei</font> 
 <img src="https://github.com/blackcater/blackcater/raw/main/images/Hi.gif" height="32"/></h1>
 <h3 align="center">Computer science students</h3>
 
