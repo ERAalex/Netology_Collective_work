@@ -448,9 +448,7 @@ def start_run(event):
 
                         run_db.update_user_mode(user_id_saved, 'boy_find_run')
 
-
-
-def start_run_bot():
+def statr_run_bot():
     for event in bot.longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me:
