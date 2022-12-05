@@ -1,8 +1,10 @@
-<h1 align="center">Hi there, we are Alex, Alexandra, Sergei 
+<h1 align="center">Hi there, we are Alex, Aleksandra, Sergei 
 <img src="https://github.com/blackcater/blackcater/raw/main/images/Hi.gif" height="32"/></h1>
-<h3 align="center">Computer science students, Python developers from Russia</h3>
+<h3 align="center">Computer science students</h3>
 
 
+
+[![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=Python+developers+from+Russia)](https://git.io/typing-svg)
 
 # VKfinderBot
 
