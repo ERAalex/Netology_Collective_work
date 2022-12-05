@@ -1,126 +1,19 @@
-import vk_api
-from vk_api.longpoll import VkLongPoll, VkEventType
-import json
+from vk_api.longpoll import VkEventType
 from vk_folder.some_frases import iniciate_messages
-# from db_mongo import find_document, series_collection, insert_document
-import os
-from fuzzywuzzy import fuzz
 
 from DB.db import run_db
-from vk_folder.people_search import User_vk, some_choice, user_need
+from vk_folder.people_search import some_choice, user_need
+from vk_folder.bot_settings import User, bot, people_search
 
-import os
-import urllib.request
 from threading import Thread
 
-token_user = os.getenv('token_user')
-vk_token = os.getenv('token')
-vk_s = vk_api.VkApi(token=vk_token)
-session_api = vk_s.get_api()
-people_search = User_vk(token_user)
-
-
-class User:
-    def __init__(self, id):
-        self.id = id
-        self.id_in_db = 0
 
 users_class = []
 check = []
 
-class Bot:
-    # начальные параметры для работы бота
-    def __init__(self, token):
-        """Инициализация потока"""
-
-        self.token = token
-        self.vk_session = vk_api.VkApi(token=token)
-        self.longpoll = VkLongPoll(self.vk_session)
-        self.vk = self.vk_session.get_api()
-        user = User(100)
-        self.users = [user]
-
-        self.id_user_bot = ''
-        self.id_user = ''
-
-
-    def sender(self, id, text, key):
-        self.vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': key})
-
-    def _get_keyboard(self, buts):
-        nb = []
-        for i in range(len(buts)):
-            nb.append([])
-            for k in range(len(buts[i])):
-                nb[i].append(None)
-        for i in range(len(buts)):
-            for k in range(len(buts[i])):
-                text = buts[i][k][0]
-                color = {'зеленый': 'positive', 'красный': 'negative', 'синий': 'primary'}[buts[i][k][1]]
-                nb[i][k] = {
-                    "action": {
-                        "type": "text",
-                        "payload": "{\"button\": \"" + "1" + "\"}",
-                        "label": f"{text}"
-                    },
-                    "color": f"{color}"
-                }
-        first_keyboard = {'one_time': False, 'buttons': nb, 'inline': False}
-        first_keyboard = json.dumps(first_keyboard, ensure_ascii=False).encode('utf-8')
-        first_keyboard = str(first_keyboard.decode('utf-8'))
-        return first_keyboard
-
-    def clear_key_board(self):
-        clear_key = self._get_keyboard([])
-        return clear_key
-
-    def menu_find_people_key_board(self):
-        menu_find_people = self._get_keyboard([
-            [('Добавить в контакты', 'синий')], [('Следующий человек', 'зеленый')],
-            [('Больше не показывать', 'красный')]
-        ])
-        return menu_find_people
-
-    def menu_sex_key_board(self):
-        menu_sex = self._get_keyboard([
-            [('Девушку', 'синий')], [('Парня', 'зеленый')]
-        ])
-        return menu_sex
-
-    def menu_check_db_key_board(self):
-        menu_check_db = self._get_keyboard([
-            [('Следующий контакт', 'зеленый')], [('Удалить контакт', 'красный')], [('Искать людей', 'синий')]
-        ])
-        return menu_check_db
-
-    def get_match_rating(user_vk_id: str, found_persons: list):
-        '''Функция анализа текста интересов между пользователем и найденными людьми!'''
-        data_user = run_db.search_user_from_db(user_vk_id)
-        filtered_persons = []
-        for person in found_persons:
-            count = 0
-            count += fuzz.token_sort_ratio(data_user['books'], person['books'])
-            count += fuzz.token_sort_ratio(data_user['activities'], person['activities'])
-            count += fuzz.token_sort_ratio(data_user['music'], person['music'])
-            count += fuzz.token_sort_ratio(data_user['movies'], person['movies'])
-            count += fuzz.token_sort_ratio(data_user['interests'], person['interests'])
-            count += fuzz.token_sort_ratio(data_user['games'], person['games'])
-            filtered_persons.append([count, person])
-        filtered_persons = sorted(filtered_persons, key=lambda x: x[0])
-        result = [person[1] for person in filtered_persons]
-        return result
-
-
-bot = Bot(vk_token)
-
-
-
 
 def start_run(event):
-
     id = event.user_id
-    id_user = id
-
 
     # для начала првоеряем если список объектов класса Юзер не равен 0, тк. при запуске бота он = 0
     # заполним его сразу первым юзером
@@ -160,9 +53,8 @@ def start_run(event):
             pass
         bot.sender(id, 'Что будем делать? Наберите цифру: \n'
                         '1- Посмотреть добавленные контакты \n'
-                        '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
-                        '3- Общий поиск людей(указать пол, возраст, город) \n'
-                        '\n'
+                        '2- Общий поиск людей(указать пол, возраст, город) \n'
+                        '+ мы отсортируем по Вашим интересам\n'
                         '\n'
                         ' ', bot.clear_key_board())
 
@@ -183,7 +75,7 @@ def start_run(event):
                         # сразу готовим count в виде step
                         run_db.update_step_session(user_id_saved, 0)
 
-                    if str(msg) == '3':
+                    if str(msg) == '2':
                         bot.sender(id, 'Для общего поиска людей выберите кого ищем \n ',
                                     bot.menu_sex_key_board())
                         run_db.update_user_mode(user_id_saved, 'menu_sex')
@@ -287,9 +179,12 @@ def start_run(event):
                         # сразу готовим count в виде step
                         run_db.update_step_session(user_id_saved, 0)
                         # парсим людей получаем список где человек 100 сохраняем
-                        resul_find_people = some_choice.get_all_available_people \
+                        resul_find_people_2 = some_choice.get_all_available_people \
                             (1, run_db.get_users_choise_age(user_id_saved),
                              run_db.get_users_choise_city(user_id_saved))
+
+                        resul_find_people = bot.get_match_rating('id' + str(id), resul_find_people_2)
+
                         # сохраняем в базу в Юзер Сессион
                         run_db.add_user_choise_ids(user_id_saved, resul_find_people)
                         # пошел цикл он нужен, чтобы убрать тех у кого мало фото < 3
@@ -442,9 +337,11 @@ def start_run(event):
                         # сразу готовим count в виде step
                         run_db.update_step_session(user_id_saved, 0)
                         # парсим людей получаем список где человек 100 сохраняем
-                        resul_find_people = some_choice.get_all_available_people \
+                        resul_find_people_2 = some_choice.get_all_available_people \
                             (2, run_db.get_users_choise_age(user_id_saved),
                              run_db.get_users_choise_city(user_id_saved))
+
+                        resul_find_people = bot.get_match_rating('id' + str(id), resul_find_people_2)
 
                         # сохраняем в базу в Юзер Сессион
                         run_db.add_user_choise_ids(user_id_saved, resul_find_people)
@@ -552,7 +449,6 @@ def start_run(event):
                                         'в Базу данных \n ', bot.menu_find_people_key_board())
 
                         run_db.update_user_mode(user_id_saved, 'boy_find_run')
-
 
 
 for event in bot.longpoll.listen():
