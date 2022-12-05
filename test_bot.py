@@ -52,9 +52,9 @@ def start_run(event):
         except:
             pass
         bot.sender(id, 'Что будем делать? Наберите цифру: \n'
-                        '1 - Посмотреть добавленные контакты \n'
-                        '2 - Общий поиск людей(указать пол, возраст, город) \n'
-                        'так же мы отсортируем выдачу по Вашим интересам (если будут)\n'
+                        '1- Посмотреть добавленные контакты \n'
+                        '2- Общий поиск людей(указать пол, возраст, город) \n'
+                        '+ мы отсортируем по Вашим интересам\n'
                         '\n'
                         ' ', bot.clear_key_board())
 
@@ -120,7 +120,7 @@ def start_run(event):
                     if msg == 'удалить контакт':
                         # достаем текущий шаг
                         step_now = run_db.get_step_ids_session(user_id_saved)
-                        bot.sender(id, 'Удаляен предыдущий выданный контакт из базы\n ',
+                        bot.sender(id, 'Удаляем предыдущий выданный контакты, Функция ДБ \n ',
                                     bot.menu_check_db_key_board())
                         # помечаем пользователя удаленным
                         run_db.mark_deleted_from_selected(user_id_saved, related_db_id_list[step_now - 1])
@@ -128,7 +128,7 @@ def start_run(event):
 
                     if msg == 'искать людей':
                         bot.sender(id,
-                                    'Переходим на поиск людей. Для общего поиска людей выберите '
+                                    'Переходим на поиск людей, Для общего поиска людей выберите '
                                     'кого ищем \n ',
                                     bot.menu_sex_key_board())
                         run_db.update_user_mode(user_id_saved, 'menu_sex')
@@ -137,13 +137,13 @@ def start_run(event):
                 elif run_db.get_user_mode(user_id_saved) == 'menu_sex':
                     # elif self.id_user_bot.mode == 'menu_sex':
                     if msg == 'девушку':
-                        bot.sender(id, 'Напишите возраст девушки, например: 27',
+                        bot.sender(id, 'напишите возраст девушки, например: 27',
                                     bot.clear_key_board())
                         run_db.update_user_mode(user_id_saved, 'girl_find_age')
                         break
 
                     if msg == 'парня':
-                        bot.sender(id, 'Напишите возраст парня, например: 27',
+                        bot.sender(id, 'напишите возраст парня, например: 27',
                                     bot.clear_key_board())
                         run_db.update_user_mode(user_id_saved, 'boy_find_age')
                         break
@@ -160,9 +160,9 @@ def start_run(event):
                             # сохраняем в БД выбор пользователя лет девушке
                             run_db.add_user_choise_age(user_id_saved, girl_decision_age)
 
-                            bot.sender(id, 'Введите город по которому искать, мы начнем поиск \n'
-                                           'это может занять пару минут, что значительно ускорит \n'
-                                           'дальнейший вывод',
+                            bot.sender(id, 'напишите город в котором искать, мы начнем поиск \n'
+                                            'это может занять пару минут, что значительно ускорит \n'
+                                            'дальнейший вывод',
                                         bot.clear_key_board())
                             run_db.update_user_mode(user_id_saved, 'girl_find_city')
                             break
@@ -237,10 +237,11 @@ def start_run(event):
                             # если достигли конца списка
                             if step_now >= len(result_2):
                                 bot.sender(id, 'Что будем делать? Наберите цифру: \n'
-                                               '1 - Посмотреть добавленные контакты \n'
-                                               '2 - Общий поиск людей(указать пол, возраст, город) \n'
-                                               'так же мы отсортируем выдачу по Вашим интересам (если будут)\n'
-                                               '\n'
+                                                '1- Посмотреть добавленные контакты \n'
+                                                '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                                '3- Общий поиск людей(указать пол, возраст, город) \n'
+                                                '\n'
+                                                '\n'
                                                 ' ', bot.clear_key_board())
                                 run_db.update_user_mode(user_id_saved, 'start')
                                 while_true = False
@@ -317,7 +318,7 @@ def start_run(event):
                             # сохраняем в БД выбор пользователя лет девушке
                             run_db.add_user_choise_age(user_id_saved, boy_decision_age)
 
-                            bot.sender(id, 'Введите город в котором искать, мы начнем поиск \n'
+                            bot.sender(id, 'напишите город в котором искать, мы начнем поиск \n'
                                             'это может занять пару минут, что значительно ускорит \n'
                                             'дальнейший вывод',
                                         bot.clear_key_board())
@@ -387,11 +388,12 @@ def start_run(event):
                             # если достигли конца списка
                             if step_now >= len(result_2):
                                 bot.sender(id, 'Что будем делать? Наберите цифру: \n'
-                                               '1 - Посмотреть добавленные контакты \n'
-                                               '2 - Общий поиск людей(указать пол, возраст, город) \n'
-                                               'так же мы отсортируем выдачу по Вашим интересам (если будут)\n'
-                                               '\n'
-                                               ' ', bot.clear_key_board())
+                                                '1- Посмотреть добавленные контакты \n'
+                                                '2- Расширенный поиск человека (совпадения по книгам, музыке) \n'
+                                                '3- Общий поиск людей(указать пол, возраст, город) \n'
+                                                '\n'
+                                                '\n'
+                                                ' ', bot.clear_key_board())
                                 run_db.update_user_mode(user_id_saved, 'start')
                                 while_true = False
                             else:
