@@ -10,7 +10,7 @@ from config import postgres_password, postgres_username
 CONNECT = {
         'drivername': 'postgresql+psycopg2',
         'username': postgres_username,
-        'password': postgres_password, # поставить свой пароль от postgres
+        'password': postgres_password,
         'host': 'localhost',
         'port': 5432,
         'database': 'vvvkinder'
@@ -51,7 +51,6 @@ class DB:
         '''добавление нового пользователя в БД'''
         Session = sessionmaker(bind=self.engine)
         db_session = Session()
-        # проверка на нахождение пользователя в базе
         chek_query = db_session.query(Users).filter(Users.vk_id == user_info['vk_id']).all()
         if not chek_query:
             add_query = Users(name=user_info['name'],
@@ -98,10 +97,8 @@ class DB:
                                 gender=selected_info['gender']
                                 )
             db_session.add(add_query)
-            # получение id только что внесенной записи выбранного пользователя
             db_session.flush()
             id_query = add_query.id
-            # добавление фотографий выбранного пользователя в таблицу Photos
             selected_photos = []
             for photo in selected_info['photo']:
                 selected_photos.append(Photos(photo_id=photo, id_selected=id_query))
@@ -184,7 +181,6 @@ class DB:
         session.close()
         result = {}
         for column in query:
-            ###### Дописал id он нам нужен в выводе для поиска по UserRelated
             result = {'id': column.id,
                       'name': column.name,
                       'last_name': column.last_name,
@@ -400,6 +396,3 @@ class DB:
 
 
 run_db = DB(**CONNECT)
-
-# test = run_db.create_database()
-# create = run_db.create_table()

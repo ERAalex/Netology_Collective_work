@@ -86,7 +86,6 @@ class User_vk:
         return user_dict
 
 
-
 class vk_choice:
     def __init__(self, vk_token_user, vk_token):
         self.vk_token_user = vk_token_user
@@ -183,14 +182,12 @@ class vk_choice:
             else:
                 people_dict['music'] = ''
 
-            # через функцию ниже берем 3 лучших фото и кидаем в список.
             try:
                 people_dict['photo'] = self.get_top_3_foto(id)
             except:
                 people_dict['photo'] = ['аккаунт закрыт для выборки фото']
 
             return people_dict
-
 
 
 
@@ -245,7 +242,6 @@ class vk_choice:
 
         most_liked = sorted(profile_photos, key=lambda likes: likes['likes']['count'], reverse=True)[:3]
         all_photo_attachments = []
-        # достаем картинки из топ 3, причем конкретно большого размера
         for item in most_liked:
             for item_s in item['sizes']:
                 if item_s['type'] == 'z':
