@@ -1,4 +1,4 @@
-from vk_folder.bot import statr_run_bot
+from vk_folder.bot import start_run_bot
 from DB.db import run_db
 
 
@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
        далее просто закомментируйте эти функции'''
 
-    test = run_db.create_database()
-    create = run_db.create_table()
+    # test = run_db.create_database()
+    # create = run_db.create_table()
 
-    statr_run_bot()
+    start_run_bot()
