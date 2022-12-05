@@ -678,7 +678,7 @@ def get_match_rating(user_vk_id: str, found_persons: list):
         count += fuzz.token_sort_ratio(data_user['games'], person['games'])
         filtered_persons.append([count, person])
     filtered_persons = sorted(filtered_persons, key=lambda x: x[0])
-    result = [person[1] for person in filtered_persons]
+    result = [person[1]['vk_id'] for person in filtered_persons]
     return result
 
 print(get_match_rating('id2246006', result_list))
