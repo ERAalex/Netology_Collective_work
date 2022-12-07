@@ -44,9 +44,9 @@ token_community =
 username = 
 password =
 ```
-> в переменную **token_user** кладем access token [как получить?](https://dzen.ru/media/kakprosto/kak-poluchit-accesstoken-vkontakte-5d72243d06cc4600ad8cb5f3 "Хорошоя инструкция")
+> в переменную **token_user** кладем access token - [как получить?](https://dzen.ru/media/kakprosto/kak-poluchit-accesstoken-vkontakte-5d72243d06cc4600ad8cb5f3 "Хорошоя инструкция")
 
-> в переменную **token_communit** кладем токен сообщества [как создать сообщество в ВК?](https://dzen.ru/media/propromotion/kak-sozdat-gruppu-vkontakte-poshagovaia-instrukciia-5cb5d73aeb4c5d00b3cb39d7 "Еще одна хорошая интструкция")
+> в переменную **token_community** кладем токен сообщества - [как создать сообщество в ВК?](https://dzen.ru/media/propromotion/kak-sozdat-gruppu-vkontakte-poshagovaia-instrukciia-5cb5d73aeb4c5d00b3cb39d7 "Еще одна хорошая интструкция") - [как получить токен сообщества?](https://vk.com/@articles_vk-token-groups "и еще одна") 
 
 > переменные в DATABASE заполняем тем же, чем вы логинитесь в **postrges**
 ## :running:
